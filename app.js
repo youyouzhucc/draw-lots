@@ -136,6 +136,35 @@
     return false;
   }
 
+  /** 获取当前用户昵称（用于每日缓存 key） */
+  function getNickname() {
+    const user = window.Auth && window.Auth.getCurrent();
+    return (user && user.nickname) ? user.nickname : 'guest';
+  }
+
+  /** 从缓存恢复某模式的占卜结果 */
+  function restoreResult(mode, data) {
+    if (!data) return;
+    if (mode === 'draw') {
+      showResult(data);
+      return;
+    }
+    if (mode === 'liuyao') {
+      liuyaoHexagram.innerHTML = data.lineHtml || '';
+      liuyaoName.textContent = data.name || '';
+      liuyaoMeaning.innerHTML = data.meaningHtml || '';
+      liuyaoResult.classList.remove('hidden');
+      liuyaoResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+    const resultEl = document.getElementById(mode + '-result');
+    if (resultEl && data.html) {
+      resultEl.innerHTML = data.html;
+      resultEl.classList.remove('hidden');
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
   function updateRegDayOptions() {
     const m = regMonth?.value;
     if (!m) {
@@ -294,6 +323,9 @@
       if (sections[mode]) sections[mode].classList.remove('hidden');
       result.classList.add('hidden');
       hideAllDivineResults();
+      const nickname = getNickname();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, mode);
+      if (cached) restoreResult(mode, cached);
     });
   });
 
@@ -325,6 +357,12 @@
   if (liuyaoBtn) {
     liuyaoBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
+      const nickname = getNickname();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, 'liuyao');
+      if (cached) {
+        restoreResult('liuyao', cached);
+        return;
+      }
       const lines = [];
       for (let i = 0; i < 6; i++) {
         const c1 = Math.random() < 0.5 ? 2 : 3;
@@ -343,7 +381,9 @@
       ).join('');
       liuyaoHexagram.innerHTML = lineHtml;
       liuyaoName.textContent = name + '卦';
-      liuyaoMeaning.innerHTML = `<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
+      const meaningHtml = `<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
+      liuyaoMeaning.innerHTML = meaningHtml;
+      if (window.DailyCache) window.DailyCache.set(nickname, 'liuyao', { lineHtml, name: name + '卦', meaningHtml });
       liuyaoResult.classList.remove('hidden');
       liuyaoResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -359,6 +399,12 @@
     formBazi.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!requireAuth()) return;
+      const nickname = getNickname();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, 'bazi');
+      if (cached) {
+        restoreResult('bazi', cached);
+        return;
+      }
       const month = parseInt(baziMonth?.value, 10);
       const day = parseInt(baziDay?.value, 10);
       const shichen = parseInt(document.getElementById('bazi-shichen')?.value || '0', 10);
@@ -374,7 +420,7 @@
       const pillar = (i) => TIAN_GAN[Math.abs(hash(s + i)) % 10] + DI_ZHI[Math.abs(hash(s + i + 10)) % 12];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      baziResult.innerHTML = `
+      const html = `
         <div class="bazi-pillars">
           <div class="bazi-labels">年柱 月柱 日柱 时柱</div>
           <div class="bazi-values">${pillar(0)} ${pillar(1)} ${pillar(2)} ${pillar(3)}</div>
@@ -384,6 +430,8 @@
         <div class="sign-text">${career.text}</div>
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
+      baziResult.innerHTML = html;
+      if (window.DailyCache) window.DailyCache.set(nickname, 'bazi', { html });
       baziResult.classList.remove('hidden');
       baziResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -399,6 +447,12 @@
     formZiwei.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!requireAuth()) return;
+      const nickname = getNickname();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, 'ziwei');
+      if (cached) {
+        restoreResult('ziwei', cached);
+        return;
+      }
       const month = parseInt(ziweiMonth?.value, 10);
       const day = parseInt(ziweiDay?.value, 10);
       if (!month || !day) {
@@ -411,12 +465,14 @@
       const star = ZIWEI_STARS[idx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[star.level] || 'level-ping';
-      ziweiResult.innerHTML = `
+      const html = `
         <div class="ziwei-star">${star.name}星</div>
         <div class="sign-level ${cls}">${star.level}</div>
         <div class="sign-text">${star.text}</div>
         <div class="sign-advice">💡 ${star.advice}</div>
       `;
+      ziweiResult.innerHTML = html;
+      if (window.DailyCache) window.DailyCache.set(nickname, 'ziwei', { html });
       ziweiResult.classList.remove('hidden');
       ziweiResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -432,6 +488,12 @@
     formXiangxue.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!requireAuth()) return;
+      const nickname = getNickname();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, 'xiangxue');
+      if (cached) {
+        restoreResult('xiangxue', cached);
+        return;
+      }
       const month = parseInt(xiangxueMonth?.value, 10);
       const day = parseInt(xiangxueDay?.value, 10);
       if (!month || !day) {
@@ -449,13 +511,15 @@
       const career = XIANGXUE_CAREER[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      xiangxueResult.innerHTML = `
+      const html = `
         <div class="xiangxue-parts">今日面相重点：<strong>${part1.part}</strong>、<strong>${part2.part}</strong></div>
         <div class="sign-text">${part1.desc} ${part2.desc}</div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
+      xiangxueResult.innerHTML = html;
+      if (window.DailyCache) window.DailyCache.set(nickname, 'xiangxue', { html });
       xiangxueResult.classList.remove('hidden');
       xiangxueResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -467,6 +531,12 @@
   if (qimenBtn && qimenResult) {
     qimenBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
+      const nickname = getNickname();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, 'qimen');
+      if (cached) {
+        restoreResult('qimen', cached);
+        return;
+      }
       const today = getTodayStr();
       const seed = hash(today);
       const doorIdx = (seed % QIMEN_DOORS.length + QIMEN_DOORS.length) % QIMEN_DOORS.length;
@@ -476,12 +546,14 @@
       const career = QIMEN_CAREER[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      qimenResult.innerHTML = `
+      const html = `
         <div class="qimen-info">今日：${QIMEN_DOORS[doorIdx]} · ${QIMEN_STARS[starIdx]} · 吉方位：${QIMEN_DIRECTIONS[dirIdx]}</div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
+      qimenResult.innerHTML = html;
+      if (window.DailyCache) window.DailyCache.set(nickname, 'qimen', { html });
       qimenResult.classList.remove('hidden');
       qimenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -493,6 +565,12 @@
   if (liurenBtn && liurenResult) {
     liurenBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
+      const nickname = getNickname();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, 'liuren');
+      if (cached) {
+        restoreResult('liuren', cached);
+        return;
+      }
       const today = getTodayStr();
       const seed = hash(today);
       const godIdx = (seed % LIUREN_GODS.length + LIUREN_GODS.length) % LIUREN_GODS.length;
@@ -500,21 +578,29 @@
       const career = LIUREN_CAREER[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      liurenResult.innerHTML = `
+      const html = `
         <div class="liuren-info">今日发用：<strong>${LIUREN_GODS[godIdx]}</strong></div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
+      liurenResult.innerHTML = html;
+      if (window.DailyCache) window.DailyCache.set(nickname, 'liuren', { html });
       liurenResult.classList.remove('hidden');
       liurenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
   }
 
-  /** 表单提交 */
+  /** 表单提交（抽签） */
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     if (!requireAuth()) return;
+    const nickname = getNickname();
+    const cached = window.DailyCache && window.DailyCache.get(nickname, 'draw');
+    if (cached) {
+      showResult(cached);
+      return;
+    }
     const user = window.Auth && window.Auth.getCurrent();
     let month, day, name;
     if (user) {
@@ -539,6 +625,8 @@
 
     signData.zodiac = zodiac;
     signData.userName = name || '你';
+    const toSave = { zodiac: signData.zodiac, level: signData.level, title: signData.title, text: signData.text, advice: signData.advice };
+    if (window.DailyCache) window.DailyCache.set(nickname, 'draw', toSave);
     showResult(signData);
   });
 

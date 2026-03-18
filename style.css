@@ -415,9 +415,9 @@ header h1 {
 }
 
 .liuyao-meaning {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--muted);
-  line-height: 1.7;
+  line-height: 1.75;
   text-align: left;
 }
 
@@ -586,10 +586,10 @@ header h1 {
 }
 
 .sign-text {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--muted);
   margin-bottom: 1rem;
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .sign-advice {

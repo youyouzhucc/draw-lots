@@ -76,13 +76,14 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  /** 抽签：基于生日+日期+关注类型生成确定性结果 */
-  function draw(month, day, focus = '', extra = '') {
+  /** 抽签：基于生日+日期+关注类型+心意生成确定性结果，千人千面 */
+  function draw(month, day, focus = '', extra = '', heart = {}) {
     const today = getTodayStr();
     const signs = focus && SIGNS_BY_FOCUS[focus] ? SIGNS_BY_FOCUS[focus] : SIGNS_DEFAULT;
-    const seed = `${month}-${day}-${today}-${focus}-${extra}`;
+    const { thought = '', mood = '', lucky = '' } = heart;
+    const seed = `${month}-${day}-${today}-${focus}-${extra}-${thought}-${mood}-${lucky}`;
     const idx = hash(seed) % signs.length;
-    return { ...signs[idx], index: idx };
+    return { ...signs[idx], index: idx, moodPrefix: getMoodPrefix(mood) };
   }
 
   /** 显示结果 */
@@ -97,9 +98,11 @@
       '凶': 'level-xiong',
     };
     const cls = levelClass[data.level] || 'level-ping';
+    const moodLine = data.moodPrefix ? `<div class="mood-prefix">${data.moodPrefix}</div>` : '';
 
     signCard.innerHTML = `
       ${data.zodiac ? `<div class="sign-zodiac">${data.zodiac}</div>` : ''}
+      ${moodLine}
       <div class="sign-level ${cls}">${data.level}</div>
       <div class="sign-title">${data.title}</div>
       <div class="sign-text">${data.text}</div>
@@ -261,6 +264,38 @@
     return 'draw:' + theme + ':' + (focus || 'default');
   }
 
+  /** 获取六种占卜的当前主题 */
+  function getDivineTheme(mode) {
+    const el = document.getElementById(mode + '-theme');
+    return (el?.value || '职场').trim();
+  }
+
+  /** 获取六种占卜的缓存 key（按模式+主题区分） */
+  function getDivineCacheKey(mode) {
+    return mode + ':' + getDivineTheme(mode);
+  }
+
+  /** 获取占卜心意（心中所念、今日心境、幸运数字），用于种子与千人千面 */
+  function getDivineHeart(mode) {
+    const prefix = mode === 'draw' ? 'draw' : mode;
+    const thought = (document.getElementById(prefix + '-thought')?.value || '').trim().slice(0, 50);
+    const mood = (document.getElementById(prefix + '-mood')?.value || '').trim();
+    const lucky = (document.getElementById(prefix + '-lucky')?.value || '').trim();
+    return { thought, mood, lucky };
+  }
+
+  /** 心境对应的个性化开场，千人千面 */
+  const MOOD_PREFIX = {
+    平静: '',
+    期待: '你带着期待而来，卦象如是回应——',
+    焦虑: '你今日心事略重，不妨先静一静，再细品下文。',
+    迷茫: '你正处迷茫，卦象或可给你一点方向。',
+    开心: '你今日心情不错，卦象亦锦上添花。',
+  };
+  function getMoodPrefix(mood) {
+    return (mood && MOOD_PREFIX[mood]) ? MOOD_PREFIX[mood] : '';
+  }
+
   /** 根据当前关注类型是否已抽签，更新抽签按钮状态 */
   function updateDrawBtnState() {
     const drawBtn = document.getElementById('draw-btn');
@@ -281,7 +316,8 @@
   function updateDivineBtnState(mode, btn, usedText, defaultText) {
     if (!btn) return;
     const nickname = getNickname();
-    const used = window.DailyCache && window.DailyCache.hasUsed(nickname, mode);
+    const cacheKey = getDivineCacheKey(mode);
+    const used = window.DailyCache && window.DailyCache.hasUsed(nickname, cacheKey);
     if (used) {
       btn.disabled = true;
       btn.textContent = usedText;
@@ -415,7 +451,7 @@
       result.classList.add('hidden');
       hideAllDivineResults();
       const nickname = getNickname();
-      const cacheKey = mode === 'draw' ? getDrawCacheKey() : mode;
+      const cacheKey = mode === 'draw' ? getDrawCacheKey() : getDivineCacheKey(mode);
       const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) restoreResult(mode, cached);
       updateAllDivineBtnStates();
@@ -454,6 +490,35 @@
       updateDrawBtnState();
     });
   }
+
+  /** 六种占卜主题切换时，恢复该主题的结果并更新按钮状态 */
+  const DIVINE_BTN_CONFIG = {
+    liuyao: ['liuyao-btn', '今日摇卦次数已用完', '摇卦'],
+    bazi: ['form-bazi', '今日排盘次数已用完', '排盘'],
+    ziwei: ['form-ziwei', '今日查星次数已用完', '查星'],
+    xiangxue: ['form-xiangxue', '今日观相次数已用完', '观相'],
+    qimen: ['qimen-btn', '今日起局次数已用完', '起局'],
+    liuren: ['liuren-btn', '今日起课次数已用完', '起课'],
+  };
+  ['liuyao', 'bazi', 'ziwei', 'xiangxue', 'qimen', 'liuren'].forEach((mode) => {
+    const themeEl = document.getElementById(mode + '-theme');
+    if (themeEl) {
+      themeEl.addEventListener('change', () => {
+        const nickname = getNickname();
+        const cacheKey = getDivineCacheKey(mode);
+        const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
+        if (cached) {
+          restoreResult(mode, cached);
+        } else {
+          const resultEl = document.getElementById(mode + '-result');
+          if (resultEl) resultEl.classList.add('hidden');
+        }
+        const [id, usedText, defaultText] = DIVINE_BTN_CONFIG[mode];
+        const btn = id.startsWith('form-') ? document.getElementById(id)?.querySelector('button[type="submit"]') : document.getElementById(id);
+        updateDivineBtnState(mode, btn, usedText, defaultText);
+      });
+    }
+  });
 
   /** 初始化关注选项 */
   updateFocusOptions();
@@ -495,7 +560,9 @@
     liuyaoBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
       const nickname = getNickname();
-      const cached = window.DailyCache && window.DailyCache.get(nickname, 'liuyao');
+      const theme = getDivineTheme('liuyao');
+      const cacheKey = getDivineCacheKey('liuyao');
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) {
         restoreResult('liuyao', cached);
         return;
@@ -510,17 +577,21 @@
       }
       const idx = lines.reduce((acc, b, i) => acc + (b << i), 0);
       const name = HEXAGRAM_NAMES[idx];
-      const meaning = HEXAGRAM_MEANINGS[idx];
+      const meanings = HEXAGRAM_MEANINGS_BY_THEME && HEXAGRAM_MEANINGS_BY_THEME[theme] ? HEXAGRAM_MEANINGS_BY_THEME[theme] : HEXAGRAM_MEANINGS;
+      const meaning = meanings[idx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[meaning.level] || 'level-ping';
       const lineHtml = lines.slice().reverse().map((b) =>
         `<div class="liuyao-line-${b ? 'yang' : 'yin'}">${b ? '——' : '— —'}</div>`
       ).join('');
+      const heart = getDivineHeart('liuyao');
+      const moodPrefix = getMoodPrefix(heart.mood);
+      const moodLine = moodPrefix ? `<div class="mood-prefix">${moodPrefix}</div>` : '';
       liuyaoHexagram.innerHTML = lineHtml;
       liuyaoName.textContent = name + '卦';
-      const meaningHtml = `<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
+      const meaningHtml = `${moodLine}<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
       liuyaoMeaning.innerHTML = meaningHtml;
-      if (window.DailyCache) window.DailyCache.set(nickname, 'liuyao', { lineHtml, name: name + '卦', meaningHtml });
+      if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, { lineHtml, name: name + '卦', meaningHtml });
       liuyaoResult.classList.remove('hidden');
       liuyaoResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       updateDivineBtnState('liuyao', liuyaoBtn, '今日摇卦次数已用完', '摇卦');
@@ -538,7 +609,9 @@
       e.preventDefault();
       if (!requireAuth()) return;
       const nickname = getNickname();
-      const cached = window.DailyCache && window.DailyCache.get(nickname, 'bazi');
+      const theme = getDivineTheme('bazi');
+      const cacheKey = getDivineCacheKey('bazi');
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) {
         restoreResult('bazi', cached);
         return;
@@ -551,14 +624,18 @@
         return;
       }
       const today = getTodayStr();
-      const seed = `${month}-${day}-${shichen}-${today}`;
-      const idx = hash(seed) % BAZI_CAREER.length;
-      const career = BAZI_CAREER[idx];
+      const heart = getDivineHeart('bazi');
+      const seed = `${month}-${day}-${shichen}-${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const arr = BAZI_BY_THEME && BAZI_BY_THEME[theme] ? BAZI_BY_THEME[theme] : BAZI_CAREER;
+      const idx = hash(seed) % arr.length;
+      const career = arr[idx];
       const s = String(hash(seed));
       const pillar = (i) => TIAN_GAN[Math.abs(hash(s + i)) % 10] + DI_ZHI[Math.abs(hash(s + i + 10)) % 12];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
+      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
+        ${moodLine}
         <div class="bazi-pillars">
           <div class="bazi-labels">年柱 月柱 日柱 时柱</div>
           <div class="bazi-values">${pillar(0)} ${pillar(1)} ${pillar(2)} ${pillar(3)}</div>
@@ -569,7 +646,7 @@
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
       baziResult.innerHTML = html;
-      if (window.DailyCache) window.DailyCache.set(nickname, 'bazi', { html });
+      if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, { html });
       baziResult.classList.remove('hidden');
       baziResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       updateDivineBtnState('bazi', formBazi?.querySelector('button[type="submit"]'), '今日排盘次数已用完', '排盘');
@@ -587,7 +664,9 @@
       e.preventDefault();
       if (!requireAuth()) return;
       const nickname = getNickname();
-      const cached = window.DailyCache && window.DailyCache.get(nickname, 'ziwei');
+      const theme = getDivineTheme('ziwei');
+      const cacheKey = getDivineCacheKey('ziwei');
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) {
         restoreResult('ziwei', cached);
         return;
@@ -599,19 +678,23 @@
         return;
       }
       const today = getTodayStr();
-      const seed = `${month}-${day}-${today}`;
-      const idx = hash(seed) % ZIWEI_STARS.length;
-      const star = ZIWEI_STARS[idx];
+      const heart = getDivineHeart('ziwei');
+      const seed = `${month}-${day}-${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const arr = ZIWEI_BY_THEME && ZIWEI_BY_THEME[theme] ? ZIWEI_BY_THEME[theme] : ZIWEI_STARS;
+      const idx = hash(seed) % arr.length;
+      const star = arr[idx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[star.level] || 'level-ping';
+      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
+        ${moodLine}
         <div class="ziwei-star">${star.name}星</div>
         <div class="sign-level ${cls}">${star.level}</div>
         <div class="sign-text">${star.text}</div>
         <div class="sign-advice">💡 ${star.advice}</div>
       `;
       ziweiResult.innerHTML = html;
-      if (window.DailyCache) window.DailyCache.set(nickname, 'ziwei', { html });
+      if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, { html });
       ziweiResult.classList.remove('hidden');
       ziweiResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       updateDivineBtnState('ziwei', formZiwei?.querySelector('button[type="submit"]'), '今日查星次数已用完', '查星');
@@ -629,7 +712,9 @@
       e.preventDefault();
       if (!requireAuth()) return;
       const nickname = getNickname();
-      const cached = window.DailyCache && window.DailyCache.get(nickname, 'xiangxue');
+      const theme = getDivineTheme('xiangxue');
+      const cacheKey = getDivineCacheKey('xiangxue');
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) {
         restoreResult('xiangxue', cached);
         return;
@@ -641,17 +726,22 @@
         return;
       }
       const today = getTodayStr();
-      const seed = `${month}-${day}-${today}`;
-      const partIdx1 = hash(seed) % XIANGXUE_PARTS.length;
-      let partIdx2 = (hash(seed + 'x') % XIANGXUE_PARTS.length);
-      if (partIdx2 === partIdx1) partIdx2 = (partIdx2 + 1) % XIANGXUE_PARTS.length;
-      const careerIdx = hash(seed + 'c') % XIANGXUE_CAREER.length;
-      const part1 = XIANGXUE_PARTS[partIdx1];
-      const part2 = XIANGXUE_PARTS[partIdx2];
-      const career = XIANGXUE_CAREER[careerIdx];
+      const heart = getDivineHeart('xiangxue');
+      const seed = `${month}-${day}-${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const parts = XIANGXUE_PARTS_BY_THEME && XIANGXUE_PARTS_BY_THEME[theme] ? XIANGXUE_PARTS_BY_THEME[theme] : XIANGXUE_PARTS;
+      const careers = XIANGXUE_CAREER_BY_THEME && XIANGXUE_CAREER_BY_THEME[theme] ? XIANGXUE_CAREER_BY_THEME[theme] : XIANGXUE_CAREER;
+      const partIdx1 = hash(seed) % parts.length;
+      let partIdx2 = (hash(seed + 'x') % parts.length);
+      if (partIdx2 === partIdx1) partIdx2 = (partIdx2 + 1) % parts.length;
+      const careerIdx = hash(seed + 'c') % careers.length;
+      const part1 = parts[partIdx1];
+      const part2 = parts[partIdx2];
+      const career = careers[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
+      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
+        ${moodLine}
         <div class="xiangxue-parts">今日面相重点：<strong>${part1.part}</strong>、<strong>${part2.part}</strong></div>
         <div class="sign-text">${part1.desc} ${part2.desc}</div>
         <div class="sign-level ${cls}">${career.level}</div>
@@ -659,7 +749,7 @@
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
       xiangxueResult.innerHTML = html;
-      if (window.DailyCache) window.DailyCache.set(nickname, 'xiangxue', { html });
+      if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, { html });
       xiangxueResult.classList.remove('hidden');
       xiangxueResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       updateDivineBtnState('xiangxue', formXiangxue?.querySelector('button[type="submit"]'), '今日观相次数已用完', '观相');
@@ -673,28 +763,35 @@
     qimenBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
       const nickname = getNickname();
-      const cached = window.DailyCache && window.DailyCache.get(nickname, 'qimen');
+      const theme = getDivineTheme('qimen');
+      const cacheKey = getDivineCacheKey('qimen');
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) {
         restoreResult('qimen', cached);
         return;
       }
       const today = getTodayStr();
-      const seed = hash(today);
+      const heart = getDivineHeart('qimen');
+      const seedStr = `${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const seed = hash(seedStr);
       const doorIdx = (seed % QIMEN_DOORS.length + QIMEN_DOORS.length) % QIMEN_DOORS.length;
       const starIdx = ((seed >> 8) % QIMEN_STARS.length + QIMEN_STARS.length) % QIMEN_STARS.length;
       const dirIdx = ((seed >> 16) % QIMEN_DIRECTIONS.length + QIMEN_DIRECTIONS.length) % QIMEN_DIRECTIONS.length;
-      const careerIdx = ((seed >> 24) % QIMEN_CAREER.length + QIMEN_CAREER.length) % QIMEN_CAREER.length;
-      const career = QIMEN_CAREER[careerIdx];
+      const arr = QIMEN_BY_THEME && QIMEN_BY_THEME[theme] ? QIMEN_BY_THEME[theme] : QIMEN_CAREER;
+      const careerIdx = ((seed >> 24) % arr.length + arr.length) % arr.length;
+      const career = arr[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
+      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
+        ${moodLine}
         <div class="qimen-info">今日：${QIMEN_DOORS[doorIdx]} · ${QIMEN_STARS[starIdx]} · 吉方位：${QIMEN_DIRECTIONS[dirIdx]}</div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
       qimenResult.innerHTML = html;
-      if (window.DailyCache) window.DailyCache.set(nickname, 'qimen', { html });
+      if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, { html });
       qimenResult.classList.remove('hidden');
       qimenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       updateDivineBtnState('qimen', qimenBtn, '今日起局次数已用完', '起局');
@@ -708,26 +805,33 @@
     liurenBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
       const nickname = getNickname();
-      const cached = window.DailyCache && window.DailyCache.get(nickname, 'liuren');
+      const theme = getDivineTheme('liuren');
+      const cacheKey = getDivineCacheKey('liuren');
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) {
         restoreResult('liuren', cached);
         return;
       }
       const today = getTodayStr();
-      const seed = hash(today);
+      const heart = getDivineHeart('liuren');
+      const seedStr = `${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const seed = hash(seedStr);
       const godIdx = (seed % LIUREN_GODS.length + LIUREN_GODS.length) % LIUREN_GODS.length;
-      const careerIdx = ((seed >> 8) % LIUREN_CAREER.length + LIUREN_CAREER.length) % LIUREN_CAREER.length;
-      const career = LIUREN_CAREER[careerIdx];
+      const arr = LIUREN_BY_THEME && LIUREN_BY_THEME[theme] ? LIUREN_BY_THEME[theme] : LIUREN_CAREER;
+      const careerIdx = ((seed >> 8) % arr.length + arr.length) % arr.length;
+      const career = arr[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
+      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
+        ${moodLine}
         <div class="liuren-info">今日发用：<strong>${LIUREN_GODS[godIdx]}</strong></div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
         <div class="sign-advice">💡 ${career.advice}</div>
       `;
       liurenResult.innerHTML = html;
-      if (window.DailyCache) window.DailyCache.set(nickname, 'liuren', { html });
+      if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, { html });
       liurenResult.classList.remove('hidden');
       liurenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       updateDivineBtnState('liuren', liurenBtn, '今日起课次数已用完', '起课');
@@ -764,12 +868,13 @@
     }
 
     const extra = name;
-    const signData = draw(month, day, focus, extra);
+    const heart = getDivineHeart('draw');
+    const signData = draw(month, day, focus, extra, heart);
     const zodiac = getZodiacSign(month, day);
 
     signData.zodiac = zodiac;
     signData.userName = name || '你';
-    const toSave = { zodiac: signData.zodiac, level: signData.level, title: signData.title, text: signData.text, advice: signData.advice };
+    const toSave = { zodiac: signData.zodiac, level: signData.level, title: signData.title, text: signData.text, advice: signData.advice, moodPrefix: signData.moodPrefix };
     if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, toSave);
     showResult(signData);
     updateDrawBtnState();

@@ -135,6 +135,30 @@
               <option value="项目推进">项目起飞</option>
             </select>
           </div>
+          <div class="form-row divine-heart">
+            <label>心中所念</label>
+            <input type="text" id="draw-thought" placeholder="心中默念之事，如：希望面试顺利" maxlength="50" />
+          </div>
+          <div class="form-row divine-heart">
+            <label>今日心境</label>
+            <select id="draw-mood">
+              <option value="">-- 可选 --</option>
+              <option value="平静">平静</option>
+              <option value="期待">期待</option>
+              <option value="焦虑">焦虑</option>
+              <option value="迷茫">迷茫</option>
+              <option value="开心">开心</option>
+            </select>
+          </div>
+          <div class="form-row divine-heart">
+            <label>幸运数字</label>
+            <select id="draw-lucky">
+              <option value="">-- 可选 --</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            </select>
+          </div>
           <div class="form-actions">
             <button type="submit" id="draw-btn">抽签</button>
           </div>
@@ -144,6 +168,38 @@
       <section id="section-liuyao" class="form-section hidden">
         <div class="liuyao-intro">
           <p class="liuyao-desc">六爻源于《易经》，以三枚硬币投掷六次得一卦，共六十四卦。心诚则灵，默念所问之事后点击摇卦。</p>
+        </div>
+        <div class="form-row">
+          <label>占卜方向</label>
+          <select id="liuyao-theme">
+            <option value="职场">职场</option>
+            <option value="恋爱">恋爱</option>
+            <option value="财富">财富</option>
+          </select>
+        </div>
+        <div class="form-row divine-heart">
+          <label>心中所念</label>
+          <input type="text" id="liuyao-thought" placeholder="心中默念之事，如：希望面试顺利" maxlength="50" />
+        </div>
+        <div class="form-row divine-heart">
+          <label>今日心境</label>
+          <select id="liuyao-mood">
+            <option value="">-- 可选 --</option>
+            <option value="平静">平静</option>
+            <option value="期待">期待</option>
+            <option value="焦虑">焦虑</option>
+            <option value="迷茫">迷茫</option>
+            <option value="开心">开心</option>
+          </select>
+        </div>
+        <div class="form-row divine-heart">
+          <label>幸运数字</label>
+          <select id="liuyao-lucky">
+            <option value="">-- 可选 --</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          </select>
         </div>
         <div class="liuyao-actions">
           <button type="button" id="liuyao-btn" class="liuyao-btn">摇卦</button>
@@ -164,9 +220,41 @@
 
       <section id="section-bazi" class="form-section hidden">
         <div class="mode-intro">
-          <p>八字又称四柱，以出生年月日时排盘。输入生日与时辰，得今日职场运势（简化版，仅供娱乐）。</p>
+          <p>八字又称四柱，以出生年月日时排盘。输入生日与时辰，得今日运势（简化版，仅供娱乐）。</p>
         </div>
         <form id="form-bazi">
+          <div class="form-row">
+            <label>占卜方向</label>
+            <select id="bazi-theme">
+              <option value="职场">职场</option>
+              <option value="恋爱">恋爱</option>
+              <option value="财富">财富</option>
+            </select>
+          </div>
+          <div class="form-row divine-heart">
+            <label>心中所念</label>
+            <input type="text" id="bazi-thought" placeholder="心中默念之事" maxlength="50" />
+          </div>
+          <div class="form-row divine-heart">
+            <label>今日心境</label>
+            <select id="bazi-mood">
+              <option value="">-- 可选 --</option>
+              <option value="平静">平静</option>
+              <option value="期待">期待</option>
+              <option value="焦虑">焦虑</option>
+              <option value="迷茫">迷茫</option>
+              <option value="开心">开心</option>
+            </select>
+          </div>
+          <div class="form-row divine-heart">
+            <label>幸运数字</label>
+            <select id="bazi-lucky">
+              <option value="">-- 可选 --</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            </select>
+          </div>
           <div class="form-row">
             <label>生日 <span class="required">*</span></label>
             <div class="birth-inputs">
@@ -198,9 +286,41 @@
 
       <section id="section-ziwei" class="form-section hidden">
         <div class="mode-intro">
-          <p>紫微斗数以出生年月日排命盘，十四主星各主不同性格与运势。输入生日得今日职场解读（简化版，仅供娱乐）。</p>
+          <p>紫微斗数以出生年月日排命盘，十四主星各主不同性格与运势。输入生日得今日运势解读（简化版，仅供娱乐）。</p>
         </div>
         <form id="form-ziwei">
+          <div class="form-row">
+            <label>占卜方向</label>
+            <select id="ziwei-theme">
+              <option value="职场">职场</option>
+              <option value="恋爱">恋爱</option>
+              <option value="财富">财富</option>
+            </select>
+          </div>
+          <div class="form-row divine-heart">
+            <label>心中所念</label>
+            <input type="text" id="ziwei-thought" placeholder="心中默念之事" maxlength="50" />
+          </div>
+          <div class="form-row divine-heart">
+            <label>今日心境</label>
+            <select id="ziwei-mood">
+              <option value="">-- 可选 --</option>
+              <option value="平静">平静</option>
+              <option value="期待">期待</option>
+              <option value="焦虑">焦虑</option>
+              <option value="迷茫">迷茫</option>
+              <option value="开心">开心</option>
+            </select>
+          </div>
+          <div class="form-row divine-heart">
+            <label>幸运数字</label>
+            <select id="ziwei-lucky">
+              <option value="">-- 可选 --</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            </select>
+          </div>
           <div class="form-row">
             <label>生日 <span class="required">*</span></label>
             <div class="birth-inputs">
@@ -223,9 +343,41 @@
 
       <section id="section-xiangxue" class="form-section hidden">
         <div class="mode-intro">
-          <p>相学观面相知运势。输入生日，得今日面相重点与职场解读（简化版，仅供娱乐）。</p>
+          <p>相学观面相知运势。输入生日，得今日面相重点与运势解读（简化版，仅供娱乐）。</p>
         </div>
         <form id="form-xiangxue">
+          <div class="form-row">
+            <label>占卜方向</label>
+            <select id="xiangxue-theme">
+              <option value="职场">职场</option>
+              <option value="恋爱">恋爱</option>
+              <option value="财富">财富</option>
+            </select>
+          </div>
+          <div class="form-row divine-heart">
+            <label>心中所念</label>
+            <input type="text" id="xiangxue-thought" placeholder="心中默念之事" maxlength="50" />
+          </div>
+          <div class="form-row divine-heart">
+            <label>今日心境</label>
+            <select id="xiangxue-mood">
+              <option value="">-- 可选 --</option>
+              <option value="平静">平静</option>
+              <option value="期待">期待</option>
+              <option value="焦虑">焦虑</option>
+              <option value="迷茫">迷茫</option>
+              <option value="开心">开心</option>
+            </select>
+          </div>
+          <div class="form-row divine-heart">
+            <label>幸运数字</label>
+            <select id="xiangxue-lucky">
+              <option value="">-- 可选 --</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+            </select>
+          </div>
           <div class="form-row">
             <label>生日 <span class="required">*</span></label>
             <div class="birth-inputs">
@@ -248,7 +400,39 @@
 
       <section id="section-qimen" class="form-section hidden">
         <div class="mode-intro">
-          <p>奇门遁甲以八门九星断吉凶方位。心诚则灵，点击起局得今日职场建议（简化版，仅供娱乐）。</p>
+          <p>奇门遁甲以八门九星断吉凶方位。心诚则灵，点击起局得今日运势建议（简化版，仅供娱乐）。</p>
+        </div>
+        <div class="form-row">
+          <label>占卜方向</label>
+          <select id="qimen-theme">
+            <option value="职场">职场</option>
+            <option value="恋爱">恋爱</option>
+            <option value="财富">财富</option>
+          </select>
+        </div>
+        <div class="form-row divine-heart">
+          <label>心中所念</label>
+          <input type="text" id="qimen-thought" placeholder="心中默念之事" maxlength="50" />
+        </div>
+        <div class="form-row divine-heart">
+          <label>今日心境</label>
+          <select id="qimen-mood">
+            <option value="">-- 可选 --</option>
+            <option value="平静">平静</option>
+            <option value="期待">期待</option>
+            <option value="焦虑">焦虑</option>
+            <option value="迷茫">迷茫</option>
+            <option value="开心">开心</option>
+          </select>
+        </div>
+        <div class="form-row divine-heart">
+          <label>幸运数字</label>
+          <select id="qimen-lucky">
+            <option value="">-- 可选 --</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          </select>
         </div>
         <div class="divine-actions">
           <button type="button" id="qimen-btn" class="divine-btn">起局</button>
@@ -258,7 +442,39 @@
 
       <section id="section-liuren" class="form-section hidden">
         <div class="mode-intro">
-          <p>六壬以十二天将断课象。心诚则灵，点击起课得今日职场运势（简化版，仅供娱乐）。</p>
+          <p>六壬以十二天将断课象。心诚则灵，点击起课得今日运势（简化版，仅供娱乐）。</p>
+        </div>
+        <div class="form-row">
+          <label>占卜方向</label>
+          <select id="liuren-theme">
+            <option value="职场">职场</option>
+            <option value="恋爱">恋爱</option>
+            <option value="财富">财富</option>
+          </select>
+        </div>
+        <div class="form-row divine-heart">
+          <label>心中所念</label>
+          <input type="text" id="liuren-thought" placeholder="心中默念之事" maxlength="50" />
+        </div>
+        <div class="form-row divine-heart">
+          <label>今日心境</label>
+          <select id="liuren-mood">
+            <option value="">-- 可选 --</option>
+            <option value="平静">平静</option>
+            <option value="期待">期待</option>
+            <option value="焦虑">焦虑</option>
+            <option value="迷茫">迷茫</option>
+            <option value="开心">开心</option>
+          </select>
+        </div>
+        <div class="form-row divine-heart">
+          <label>幸运数字</label>
+          <select id="liuren-lucky">
+            <option value="">-- 可选 --</option>
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          </select>
         </div>
         <div class="divine-actions">
           <button type="button" id="liuren-btn" class="divine-btn">起课</button>

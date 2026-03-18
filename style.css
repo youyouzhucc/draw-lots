@@ -720,6 +720,20 @@ header h1 {
   border-left: 4px solid var(--accent);
 }
 
+.mood-prefix {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed rgba(113, 128, 150, 0.3);
+}
+
+.divine-heart input,
+.divine-heart select {
+  font-size: 0.95rem;
+}
+
 footer {
   margin-top: auto;
   padding-top: 2rem;

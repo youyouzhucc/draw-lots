@@ -140,21 +140,24 @@
   function updateRegDayOptions() {
     const m = regMonth?.value;
     if (!m) {
-      if (regDay) regDay.innerHTML = '<option value="">日</option>';
+      if (regDay) regDay.innerHTML = '<option value="">请先选择月份</option>';
       return;
     }
     const days = getDaysInMonth(m);
     if (regDay) {
-      regDay.innerHTML = '<option value="">日</option>';
+      regDay.innerHTML = '';
       for (let d = 1; d <= days; d++) {
         const opt = document.createElement('option');
         opt.value = d;
         opt.textContent = d + '日';
+        if (d === 1) opt.selected = true;
         regDay.appendChild(opt);
       }
     }
   }
   if (regMonth) regMonth.addEventListener('change', updateRegDayOptions);
+
+  setAuthPanelRequired(true);
 
   function applyAuthState() {
     const user = window.Auth && window.Auth.getCurrent();
@@ -188,6 +191,28 @@
     updateDayOptions();
   });
 
+  function setAuthPanelRequired(loginVisible) {
+    const loginName = document.getElementById('auth-name');
+    const loginPwd = document.getElementById('auth-pwd');
+    const regName = document.getElementById('reg-name');
+    const regPwd = document.getElementById('reg-pwd');
+    if (loginVisible) {
+      if (loginName) loginName.setAttribute('required', '');
+      if (loginPwd) loginPwd.setAttribute('required', '');
+      if (regName) regName.removeAttribute('required');
+      if (regPwd) regPwd.removeAttribute('required');
+      if (regMonth) regMonth.removeAttribute('required');
+      if (regDay) regDay.removeAttribute('required');
+    } else {
+      if (loginName) loginName.removeAttribute('required');
+      if (loginPwd) loginPwd.removeAttribute('required');
+      if (regName) regName.setAttribute('required', '');
+      if (regPwd) regPwd.setAttribute('required', '');
+      if (regMonth) regMonth.setAttribute('required', '');
+      if (regDay) regDay.setAttribute('required', '');
+    }
+  }
+
   authTabs && authTabs.forEach((t) => {
     t.addEventListener('click', () => {
       authTabs.forEach((x) => x.classList.remove('active'));
@@ -197,10 +222,12 @@
         authLogin.classList.remove('hidden');
         authRegister.classList.add('hidden');
         authSubmit.textContent = '登录';
+        setAuthPanelRequired(true);
       } else {
         authLogin.classList.add('hidden');
         authRegister.classList.remove('hidden');
         authSubmit.textContent = '注册';
+        setAuthPanelRequired(false);
         updateRegDayOptions();
       }
     });

@@ -1,0 +1,12 @@
+{
+  "name": "draw-lots",
+  "version": "1.0.0",
+  "description": "职场每日占卜",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

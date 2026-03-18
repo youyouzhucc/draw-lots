@@ -6,8 +6,41 @@
   const form = document.getElementById('form');
   const result = document.getElementById('result');
   const signCard = document.getElementById('sign-card');
-  const drawBtn = document.getElementById('draw-btn');
+  const monthSelect = document.getElementById('month');
+  const daySelect = document.getElementById('day');
   const resetBtn = document.getElementById('reset-btn');
+
+  /** 根据月份获取天数（2月按29天，兼容闰年） */
+  function getDaysInMonth(month) {
+    const m = parseInt(month, 10);
+    if (!m || m < 1 || m > 12) return 31;
+    if (m === 2) return 29;
+    if ([4, 6, 9, 11].includes(m)) return 30;
+    return 31;
+  }
+
+  /** 更新日的下拉选项 */
+  function updateDayOptions() {
+    const month = monthSelect.value;
+    if (!month) {
+      daySelect.innerHTML = '<option value="">日</option>';
+      return;
+    }
+    const days = getDaysInMonth(month);
+    const currentDay = parseInt(daySelect.value, 10) || 1;
+
+    const toSelect = Math.min(Math.max(1, currentDay), days);
+    daySelect.innerHTML = '<option value="">日</option>';
+    for (let d = 1; d <= days; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d + '日';
+      if (d === toSelect) opt.selected = true;
+      daySelect.appendChild(opt);
+    }
+  }
+
+  monthSelect.addEventListener('change', updateDayOptions);
 
   /** 简单哈希：将字符串转为 0~n-1 的整数 */
   function hash(str) {
@@ -57,11 +90,14 @@
     result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  /** 初始化日的选项（默认31天） */
+  updateDayOptions();
+
   /** 表单提交 */
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const month = parseInt(document.getElementById('month').value, 10);
-    const day = parseInt(document.getElementById('day').value, 10);
+    const month = parseInt(monthSelect.value, 10);
+    const day = parseInt(daySelect.value, 10);
     const name = (document.getElementById('name').value || '').trim();
     const focus = (document.getElementById('focus').value || '').trim();
 
@@ -84,6 +120,7 @@
     resetBtn.addEventListener('click', () => {
       result.classList.add('hidden');
       form.reset();
+      updateDayOptions();
     });
   }
 })();

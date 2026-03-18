@@ -39,16 +39,15 @@
     return 31;
   }
 
-  /** 更新日的下拉选项 */
-  function updateDayOptions() {
+  /** 更新日的下拉选项，可选传入要保留的日 overrideDay */
+  function updateDayOptions(overrideDay) {
     const month = monthSelect.value;
     if (!month) {
       daySelect.innerHTML = '<option value="">日</option>';
       return;
     }
     const days = getDaysInMonth(month);
-    const currentDay = parseInt(daySelect.value, 10) || 1;
-
+    const currentDay = overrideDay != null ? Math.min(Math.max(1, overrideDay), days) : (parseInt(daySelect.value, 10) || 1);
     const toSelect = Math.min(Math.max(1, currentDay), days);
     daySelect.innerHTML = '<option value="">日</option>';
     for (let d = 1; d <= days; d++) {
@@ -167,11 +166,12 @@
       if (formName) formName.classList.add('hidden');
       monthSelect.removeAttribute('required');
       daySelect.removeAttribute('required');
-      monthSelect.value = user.month;
-      daySelect.value = user.day;
+      const m = parseInt(user.month, 10) || 1;
+      const d = parseInt(user.day, 10) || 1;
+      monthSelect.value = String(m);
+      updateDayOptions(d);
       const nameEl = document.getElementById('name');
-      if (nameEl) nameEl.value = user.nickname;
-      updateDayOptions();
+      if (nameEl) nameEl.value = user.nickname || '';
     } else {
       if (userHint) userHint.classList.add('hidden');
       if (formBirthday) formBirthday.classList.remove('hidden');

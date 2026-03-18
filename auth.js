@@ -39,9 +39,11 @@
     register(nickname, month, day, password) {
       const users = getUsers();
       if (users[nickname]) return { ok: false, msg: '该昵称已注册' };
-      users[nickname] = { month, day, password };
+      const m = parseInt(month, 10) || 1;
+      const d = parseInt(day, 10) || 1;
+      users[nickname] = { month: m, day: d, password };
       saveUsers(users);
-      setCurrent({ nickname, month, day });
+      setCurrent({ nickname, month: m, day: d });
       return { ok: true };
     },
     login(nickname, password) {

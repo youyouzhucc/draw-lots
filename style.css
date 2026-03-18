@@ -136,7 +136,8 @@ header h1 {
 .user-hint {
   font-size: 0.85rem;
   color: var(--accent-2);
-  margin-bottom: 1rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0;
   padding: 0.6rem 1rem;
   background: linear-gradient(135deg, rgba(240, 147, 251, 0.15), rgba(245, 87, 108, 0.1));
   border-radius: 12px;

@@ -114,10 +114,7 @@
   /** 初始化日的选项（默认31天） */
   updateDayOptions();
 
-  /** 登录注册 */
-  const authBtn = document.getElementById('auth-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const userInfo = document.getElementById('user-info');
+  /** 登录注册 - 占卜前需登录，点击提交时未登录则弹窗 */
   const userHint = document.getElementById('user-hint');
   const formBirthday = document.getElementById('form-birthday');
   const formName = document.getElementById('form-name');
@@ -130,20 +127,31 @@
   const authSubmit = document.getElementById('auth-submit');
   const regMonth = document.getElementById('reg-month');
   const regDay = document.getElementById('reg-day');
+  const logoutLink = document.getElementById('logout-link');
+
+  /** 占卜前检查登录，未登录则弹窗并返回 false */
+  function requireAuth() {
+    const user = window.Auth && window.Auth.getCurrent();
+    if (user) return true;
+    if (authModal) authModal.classList.remove('hidden');
+    return false;
+  }
 
   function updateRegDayOptions() {
-    const m = regMonth.value;
+    const m = regMonth?.value;
     if (!m) {
-      regDay.innerHTML = '<option value="">日</option>';
+      if (regDay) regDay.innerHTML = '<option value="">日</option>';
       return;
     }
     const days = getDaysInMonth(m);
-    regDay.innerHTML = '<option value="">日</option>';
-    for (let d = 1; d <= days; d++) {
-      const opt = document.createElement('option');
-      opt.value = d;
-      opt.textContent = d + '日';
-      regDay.appendChild(opt);
+    if (regDay) {
+      regDay.innerHTML = '<option value="">日</option>';
+      for (let d = 1; d <= days; d++) {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d + '日';
+        regDay.appendChild(opt);
+      }
     }
   }
   if (regMonth) regMonth.addEventListener('change', updateRegDayOptions);
@@ -151,9 +159,6 @@
   function applyAuthState() {
     const user = window.Auth && window.Auth.getCurrent();
     if (user) {
-      if (authBtn) authBtn.classList.add('hidden');
-      if (userInfo) { userInfo.classList.remove('hidden'); userInfo.textContent = '欢迎，' + user.nickname; }
-      if (logoutBtn) logoutBtn.classList.remove('hidden');
       if (userHint) userHint.classList.remove('hidden');
       if (formBirthday) formBirthday.classList.add('hidden');
       if (formName) formName.classList.add('hidden');
@@ -161,12 +166,10 @@
       daySelect.removeAttribute('required');
       monthSelect.value = user.month;
       daySelect.value = user.day;
-      document.getElementById('name').value = user.nickname;
+      const nameEl = document.getElementById('name');
+      if (nameEl) nameEl.value = user.nickname;
       updateDayOptions();
     } else {
-      if (authBtn) authBtn.classList.remove('hidden');
-      if (userInfo) userInfo.classList.add('hidden');
-      if (logoutBtn) logoutBtn.classList.add('hidden');
       if (userHint) userHint.classList.add('hidden');
       if (formBirthday) formBirthday.classList.remove('hidden');
       if (formName) formName.classList.remove('hidden');
@@ -176,9 +179,9 @@
   }
   if (window.Auth) applyAuthState();
 
-  if (authBtn) authBtn.addEventListener('click', () => { authModal && authModal.classList.remove('hidden'); });
   if (authClose) authClose.addEventListener('click', () => { authModal && authModal.classList.add('hidden'); });
-  if (logoutBtn) logoutBtn.addEventListener('click', () => {
+  if (logoutLink) logoutLink.addEventListener('click', (e) => {
+    e.preventDefault();
     if (window.Auth) window.Auth.logout();
     applyAuthState();
     form.reset();
@@ -294,6 +297,7 @@
 
   if (liuyaoBtn) {
     liuyaoBtn.addEventListener('click', () => {
+      if (!requireAuth()) return;
       const lines = [];
       for (let i = 0; i < 6; i++) {
         const c1 = Math.random() < 0.5 ? 2 : 3;
@@ -327,6 +331,7 @@
   if (formBazi && baziResult) {
     formBazi.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!requireAuth()) return;
       const month = parseInt(baziMonth?.value, 10);
       const day = parseInt(baziDay?.value, 10);
       const shichen = parseInt(document.getElementById('bazi-shichen')?.value || '0', 10);
@@ -366,6 +371,7 @@
   if (formZiwei && ziweiResult) {
     formZiwei.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!requireAuth()) return;
       const month = parseInt(ziweiMonth?.value, 10);
       const day = parseInt(ziweiDay?.value, 10);
       if (!month || !day) {
@@ -398,6 +404,7 @@
   if (formXiangxue && xiangxueResult) {
     formXiangxue.addEventListener('submit', (e) => {
       e.preventDefault();
+      if (!requireAuth()) return;
       const month = parseInt(xiangxueMonth?.value, 10);
       const day = parseInt(xiangxueDay?.value, 10);
       if (!month || !day) {
@@ -432,6 +439,7 @@
   const qimenResult = document.getElementById('qimen-result');
   if (qimenBtn && qimenResult) {
     qimenBtn.addEventListener('click', () => {
+      if (!requireAuth()) return;
       const today = getTodayStr();
       const seed = hash(today);
       const doorIdx = (seed % QIMEN_DOORS.length + QIMEN_DOORS.length) % QIMEN_DOORS.length;
@@ -457,6 +465,7 @@
   const liurenResult = document.getElementById('liuren-result');
   if (liurenBtn && liurenResult) {
     liurenBtn.addEventListener('click', () => {
+      if (!requireAuth()) return;
       const today = getTodayStr();
       const seed = hash(today);
       const godIdx = (seed % LIUREN_GODS.length + LIUREN_GODS.length) % LIUREN_GODS.length;
@@ -478,6 +487,7 @@
   /** 表单提交 */
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     const user = window.Auth && window.Auth.getCurrent();
     let month, day, name;
     if (user) {

@@ -1,6 +1,6 @@
 /**
- * 职场每日占卜 - 主逻辑
- * 基于 生日 + 日期 生成确定性种子，保证每日一签
+ * 每日占卜 - 主逻辑
+ * 支持职场、恋爱、财富等方向，基于生日+日期生成确定性种子
  */
 (function () {
   const form = document.getElementById('form');
@@ -211,10 +211,54 @@
   }
   if (window.Auth) applyAuthState();
 
-  /** 获取当前抽签的缓存 key（按关注类型区分） */
+  /** 各主题下的关注选项 */
+  const FOCUS_OPTIONS = {
+    职场: [
+      { value: '职场氛围', label: '防小人' },
+      { value: '升职加薪', label: '求加薪' },
+      { value: '跳槽转岗', label: '想跳槽' },
+      { value: '面试求职', label: '面试顺利' },
+      { value: '项目推进', label: '项目起飞' },
+    ],
+    恋爱: [
+      { value: '桃花运', label: '桃花运' },
+      { value: '恋爱运势', label: '恋爱运势' },
+      { value: '复合', label: '想复合' },
+      { value: '表白', label: '想表白' },
+      { value: '脱单', label: '想脱单' },
+    ],
+    财富: [
+      { value: '正财运', label: '正财运' },
+      { value: '偏财运', label: '偏财运' },
+      { value: '投资', label: '投资' },
+      { value: '创业', label: '创业' },
+      { value: '理财', label: '理财' },
+    ],
+  };
+
+  /** 根据主题更新关注选项 */
+  function updateFocusOptions() {
+    const themeSelect = document.getElementById('theme');
+    const focusSelect = document.getElementById('focus');
+    if (!themeSelect || !focusSelect) return;
+    const theme = themeSelect.value || '职场';
+    const opts = FOCUS_OPTIONS[theme] || FOCUS_OPTIONS['职场'];
+    const currentVal = focusSelect.value;
+    focusSelect.innerHTML = '<option value="">-- 可选 --</option>';
+    opts.forEach((o) => {
+      const opt = document.createElement('option');
+      opt.value = o.value;
+      opt.textContent = o.label;
+      if (o.value === currentVal) opt.selected = true;
+      focusSelect.appendChild(opt);
+    });
+  }
+
+  /** 获取当前抽签的缓存 key（按主题+关注类型区分） */
   function getDrawCacheKey() {
+    const theme = (document.getElementById('theme')?.value || '职场').trim();
     const focus = (document.getElementById('focus')?.value || '').trim();
-    return 'draw:' + (focus || 'default');
+    return 'draw:' + theme + ':' + (focus || 'default');
   }
 
   /** 根据当前关注类型是否已抽签，更新抽签按钮状态 */
@@ -378,6 +422,23 @@
     });
   });
 
+  /** 主题切换时，更新关注选项并恢复该类型的结果 */
+  const themeSelect = document.getElementById('theme');
+  if (themeSelect) {
+    themeSelect.addEventListener('change', () => {
+      updateFocusOptions();
+      const nickname = getNickname();
+      const cacheKey = getDrawCacheKey();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
+      if (cached) {
+        showResult(cached);
+      } else {
+        result.classList.add('hidden');
+      }
+      updateDrawBtnState();
+    });
+  }
+
   /** 关注类型切换时，更新抽签按钮状态并恢复该类型的结果 */
   const focusSelect = document.getElementById('focus');
   if (focusSelect) {
@@ -393,6 +454,9 @@
       updateDrawBtnState();
     });
   }
+
+  /** 初始化关注选项 */
+  updateFocusOptions();
 
   /** 初始加载时，若在抽签模式且已有今日缓存，恢复展示 */
   const drawSection = document.getElementById('section-draw');

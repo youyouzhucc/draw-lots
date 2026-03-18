@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>职场每日占卜</title>
+  <title>每日占卜</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <link rel="stylesheet" href="style.css?v=8" />
 </head>
@@ -21,7 +21,7 @@
         </div>
       </div>
       <div class="header-row">
-        <h1>职场每日占卜</h1>
+        <h1>每日占卜</h1>
       </div>
       <div id="user-hint" class="user-hint hidden">已登录，将使用您保存的生日和昵称 <a href="#" id="logout-link" class="logout-link">退出</a></div>
     </header>
@@ -115,6 +115,14 @@
           <div id="form-name" class="form-row">
             <label>昵称</label>
             <input type="text" id="name" placeholder="可选，用于个性化称呼" />
+          </div>
+          <div class="form-row">
+            <label>占卜方向</label>
+            <select id="theme">
+              <option value="职场">职场</option>
+              <option value="恋爱">恋爱</option>
+              <option value="财富">财富</option>
+            </select>
           </div>
           <div class="form-row">
             <label>当前关注</label>

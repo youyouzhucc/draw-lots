@@ -211,15 +211,22 @@
   }
   if (window.Auth) applyAuthState();
 
-  /** 根据今日是否已抽签，更新抽签按钮状态 */
+  /** 获取当前抽签的缓存 key（按关注类型区分） */
+  function getDrawCacheKey() {
+    const focus = (document.getElementById('focus')?.value || '').trim();
+    return 'draw:' + (focus || 'default');
+  }
+
+  /** 根据当前关注类型是否已抽签，更新抽签按钮状态 */
   function updateDrawBtnState() {
     const drawBtn = document.getElementById('draw-btn');
     if (!drawBtn) return;
     const nickname = getNickname();
-    const used = window.DailyCache && window.DailyCache.hasUsed(nickname, 'draw');
+    const cacheKey = getDrawCacheKey();
+    const used = window.DailyCache && window.DailyCache.hasUsed(nickname, cacheKey);
     if (used) {
       drawBtn.disabled = true;
-      drawBtn.textContent = '今日抽签次数已用完';
+      drawBtn.textContent = '今日该类型抽签次数已用完';
     } else {
       drawBtn.disabled = false;
       drawBtn.textContent = '抽签';
@@ -339,11 +346,36 @@
       result.classList.add('hidden');
       hideAllDivineResults();
       const nickname = getNickname();
-      const cached = window.DailyCache && window.DailyCache.get(nickname, mode);
+      const cacheKey = mode === 'draw' ? getDrawCacheKey() : mode;
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) restoreResult(mode, cached);
       if (mode === 'draw') updateDrawBtnState();
     });
   });
+
+  /** 关注类型切换时，更新抽签按钮状态并恢复该类型的结果 */
+  const focusSelect = document.getElementById('focus');
+  if (focusSelect) {
+    focusSelect.addEventListener('change', () => {
+      const nickname = getNickname();
+      const cacheKey = getDrawCacheKey();
+      const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
+      if (cached) {
+        showResult(cached);
+      } else {
+        result.classList.add('hidden');
+      }
+      updateDrawBtnState();
+    });
+  }
+
+  /** 初始加载时，若在抽签模式且已有今日缓存，恢复展示 */
+  const drawSection = document.getElementById('section-draw');
+  if (drawSection && !drawSection.classList.contains('hidden')) {
+    const nickname = getNickname();
+    const cached = window.DailyCache && window.DailyCache.get(nickname, getDrawCacheKey());
+    if (cached) showResult(cached);
+  }
 
   /** 通用：更新日选项（用于八字/紫微/相学表单） */
   function updateDayOptionsFor(monthSelect, daySelect) {
@@ -612,7 +644,8 @@
     e.preventDefault();
     if (!requireAuth()) return;
     const nickname = getNickname();
-    const cached = window.DailyCache && window.DailyCache.get(nickname, 'draw');
+    const cacheKey = getDrawCacheKey();
+    const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
     if (cached) {
       showResult(cached);
       return;
@@ -642,7 +675,7 @@
     signData.zodiac = zodiac;
     signData.userName = name || '你';
     const toSave = { zodiac: signData.zodiac, level: signData.level, title: signData.title, text: signData.text, advice: signData.advice };
-    if (window.DailyCache) window.DailyCache.set(nickname, 'draw', toSave);
+    if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, toSave);
     showResult(signData);
     updateDrawBtnState();
   });

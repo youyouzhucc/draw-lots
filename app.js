@@ -114,6 +114,127 @@
   /** 初始化日的选项（默认31天） */
   updateDayOptions();
 
+  /** 登录注册 */
+  const authBtn = document.getElementById('auth-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const userInfo = document.getElementById('user-info');
+  const userHint = document.getElementById('user-hint');
+  const formBirthday = document.getElementById('form-birthday');
+  const formName = document.getElementById('form-name');
+  const authModal = document.getElementById('auth-modal');
+  const authForm = document.getElementById('auth-form');
+  const authTabs = document.querySelectorAll('.auth-tab');
+  const authLogin = document.getElementById('auth-login');
+  const authRegister = document.getElementById('auth-register');
+  const authClose = document.getElementById('auth-close');
+  const authSubmit = document.getElementById('auth-submit');
+  const regMonth = document.getElementById('reg-month');
+  const regDay = document.getElementById('reg-day');
+
+  function updateRegDayOptions() {
+    const m = regMonth.value;
+    if (!m) {
+      regDay.innerHTML = '<option value="">日</option>';
+      return;
+    }
+    const days = getDaysInMonth(m);
+    regDay.innerHTML = '<option value="">日</option>';
+    for (let d = 1; d <= days; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d + '日';
+      regDay.appendChild(opt);
+    }
+  }
+  if (regMonth) regMonth.addEventListener('change', updateRegDayOptions);
+
+  function applyAuthState() {
+    const user = window.Auth && window.Auth.getCurrent();
+    if (user) {
+      if (authBtn) authBtn.classList.add('hidden');
+      if (userInfo) { userInfo.classList.remove('hidden'); userInfo.textContent = '欢迎，' + user.nickname; }
+      if (logoutBtn) logoutBtn.classList.remove('hidden');
+      if (userHint) userHint.classList.remove('hidden');
+      if (formBirthday) formBirthday.classList.add('hidden');
+      if (formName) formName.classList.add('hidden');
+      monthSelect.removeAttribute('required');
+      daySelect.removeAttribute('required');
+      monthSelect.value = user.month;
+      daySelect.value = user.day;
+      document.getElementById('name').value = user.nickname;
+      updateDayOptions();
+    } else {
+      if (authBtn) authBtn.classList.remove('hidden');
+      if (userInfo) userInfo.classList.add('hidden');
+      if (logoutBtn) logoutBtn.classList.add('hidden');
+      if (userHint) userHint.classList.add('hidden');
+      if (formBirthday) formBirthday.classList.remove('hidden');
+      if (formName) formName.classList.remove('hidden');
+      monthSelect.setAttribute('required', '');
+      daySelect.setAttribute('required', '');
+    }
+  }
+  if (window.Auth) applyAuthState();
+
+  if (authBtn) authBtn.addEventListener('click', () => { authModal && authModal.classList.remove('hidden'); });
+  if (authClose) authClose.addEventListener('click', () => { authModal && authModal.classList.add('hidden'); });
+  if (logoutBtn) logoutBtn.addEventListener('click', () => {
+    if (window.Auth) window.Auth.logout();
+    applyAuthState();
+    form.reset();
+    updateDayOptions();
+  });
+
+  authTabs && authTabs.forEach((t) => {
+    t.addEventListener('click', () => {
+      authTabs.forEach((x) => x.classList.remove('active'));
+      t.classList.add('active');
+      const tab = t.dataset.tab;
+      if (tab === 'login') {
+        authLogin.classList.remove('hidden');
+        authRegister.classList.add('hidden');
+        authSubmit.textContent = '登录';
+      } else {
+        authLogin.classList.add('hidden');
+        authRegister.classList.remove('hidden');
+        authSubmit.textContent = '注册';
+        updateRegDayOptions();
+      }
+    });
+  });
+
+  authForm && authForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const tab = document.querySelector('.auth-tab.active').dataset.tab;
+    if (tab === 'login') {
+      const name = document.getElementById('auth-name').value.trim();
+      const pwd = document.getElementById('auth-pwd').value;
+      const r = window.Auth.login(name, pwd);
+      if (r.ok) {
+        authModal.classList.add('hidden');
+        applyAuthState();
+      } else {
+        alert(r.msg);
+      }
+    } else {
+      const name = document.getElementById('reg-name').value.trim();
+      const month = parseInt(regMonth.value, 10);
+      const day = parseInt(regDay.value, 10);
+      const pwd = document.getElementById('reg-pwd').value;
+      if (!month || !day) {
+        alert('请选择生日');
+        return;
+      }
+      const r = window.Auth.register(name, month, day, pwd);
+      if (r.ok) {
+        authModal.classList.add('hidden');
+        applyAuthState();
+      } else {
+        alert(r.msg);
+      }
+    }
+  });
+
   /** 模式切换：抽签 / 六爻 */
   const modeTabs = document.querySelectorAll('.mode-tab');
   const sectionDraw = document.getElementById('section-draw');
@@ -201,13 +322,21 @@
   /** 表单提交 */
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    const month = parseInt(monthSelect.value, 10);
-    const day = parseInt(daySelect.value, 10);
-    const name = (document.getElementById('name').value || '').trim();
+    const user = window.Auth && window.Auth.getCurrent();
+    let month, day, name;
+    if (user) {
+      month = user.month;
+      day = user.day;
+      name = user.nickname;
+    } else {
+      month = parseInt(monthSelect.value, 10);
+      day = parseInt(daySelect.value, 10);
+      name = (document.getElementById('name').value || '').trim();
+    }
     const focus = (document.getElementById('focus').value || '').trim();
 
     if (!month || !day || month < 1 || month > 12 || day < 1 || day > 31) {
-      alert('请填写有效的生日（月、日）');
+      alert('请填写有效的生日（月、日），或先登录/注册');
       return;
     }
 
@@ -227,6 +356,13 @@
     resetBtn.addEventListener('click', () => {
       result.classList.add('hidden');
       form.reset();
+      const user = window.Auth && window.Auth.getCurrent();
+      if (user) {
+        monthSelect.value = user.month;
+        daySelect.value = user.day;
+        document.getElementById('name').value = user.nickname;
+      }
+      updateDayOptions();
     });
   }
 })();

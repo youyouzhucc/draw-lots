@@ -41,6 +41,7 @@
   }
 
   monthSelect.addEventListener('change', updateDayOptions);
+  monthSelect.addEventListener('input', updateDayOptions);
 
   /** 简单哈希：将字符串转为 0~n-1 的整数 */
   function hash(str) {
@@ -115,12 +116,13 @@
     showResult(signData);
   });
 
+  form.addEventListener('reset', () => setTimeout(updateDayOptions, 0));
+
   /** 重置 */
   if (resetBtn) {
     resetBtn.addEventListener('click', () => {
       result.classList.add('hidden');
       form.reset();
-      updateDayOptions();
     });
   }
 })();

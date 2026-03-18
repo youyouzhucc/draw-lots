@@ -346,6 +346,19 @@ header h1 {
   box-shadow: 0 6px 20px rgba(240, 147, 251, 0.5);
 }
 
+.divine-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+  box-shadow: none;
+}
+
+.divine-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .divine-result {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
@@ -456,6 +469,19 @@ header h1 {
 .liuyao-btn:hover {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 6px 20px rgba(240, 147, 251, 0.5);
+}
+
+.liuyao-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+  box-shadow: none;
+}
+
+.liuyao-btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .liuyao-result {

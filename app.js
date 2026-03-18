@@ -207,7 +207,7 @@
       monthSelect.setAttribute('required', '');
       daySelect.setAttribute('required', '');
     }
-    updateDrawBtnState();
+    updateAllDivineBtnStates();
   }
   if (window.Auth) applyAuthState();
 
@@ -231,6 +231,31 @@
       drawBtn.disabled = false;
       drawBtn.textContent = '抽签';
     }
+  }
+
+  /** 更新某占卜类型的按钮状态（六爻/八字/紫微/相学/奇门/六壬） */
+  function updateDivineBtnState(mode, btn, usedText, defaultText) {
+    if (!btn) return;
+    const nickname = getNickname();
+    const used = window.DailyCache && window.DailyCache.hasUsed(nickname, mode);
+    if (used) {
+      btn.disabled = true;
+      btn.textContent = usedText;
+    } else {
+      btn.disabled = false;
+      btn.textContent = defaultText;
+    }
+  }
+
+  /** 更新所有占卜类型按钮状态 */
+  function updateAllDivineBtnStates() {
+    updateDrawBtnState();
+    updateDivineBtnState('liuyao', document.getElementById('liuyao-btn'), '今日摇卦次数已用完', '摇卦');
+    updateDivineBtnState('bazi', document.getElementById('form-bazi')?.querySelector('button[type="submit"]'), '今日排盘次数已用完', '排盘');
+    updateDivineBtnState('ziwei', document.getElementById('form-ziwei')?.querySelector('button[type="submit"]'), '今日查星次数已用完', '查星');
+    updateDivineBtnState('xiangxue', document.getElementById('form-xiangxue')?.querySelector('button[type="submit"]'), '今日观相次数已用完', '观相');
+    updateDivineBtnState('qimen', document.getElementById('qimen-btn'), '今日起局次数已用完', '起局');
+    updateDivineBtnState('liuren', document.getElementById('liuren-btn'), '今日起课次数已用完', '起课');
   }
 
   if (authClose) authClose.addEventListener('click', () => { authModal && authModal.classList.add('hidden'); });
@@ -349,7 +374,7 @@
       const cacheKey = mode === 'draw' ? getDrawCacheKey() : mode;
       const cached = window.DailyCache && window.DailyCache.get(nickname, cacheKey);
       if (cached) restoreResult(mode, cached);
-      if (mode === 'draw') updateDrawBtnState();
+      updateAllDivineBtnStates();
     });
   });
 
@@ -434,6 +459,7 @@
       if (window.DailyCache) window.DailyCache.set(nickname, 'liuyao', { lineHtml, name: name + '卦', meaningHtml });
       liuyaoResult.classList.remove('hidden');
       liuyaoResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      updateDivineBtnState('liuyao', liuyaoBtn, '今日摇卦次数已用完', '摇卦');
     });
   }
 
@@ -482,6 +508,7 @@
       if (window.DailyCache) window.DailyCache.set(nickname, 'bazi', { html });
       baziResult.classList.remove('hidden');
       baziResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      updateDivineBtnState('bazi', formBazi?.querySelector('button[type="submit"]'), '今日排盘次数已用完', '排盘');
     });
   }
 
@@ -523,6 +550,7 @@
       if (window.DailyCache) window.DailyCache.set(nickname, 'ziwei', { html });
       ziweiResult.classList.remove('hidden');
       ziweiResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      updateDivineBtnState('ziwei', formZiwei?.querySelector('button[type="submit"]'), '今日查星次数已用完', '查星');
     });
   }
 
@@ -570,6 +598,7 @@
       if (window.DailyCache) window.DailyCache.set(nickname, 'xiangxue', { html });
       xiangxueResult.classList.remove('hidden');
       xiangxueResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      updateDivineBtnState('xiangxue', formXiangxue?.querySelector('button[type="submit"]'), '今日观相次数已用完', '观相');
     });
   }
 
@@ -604,6 +633,7 @@
       if (window.DailyCache) window.DailyCache.set(nickname, 'qimen', { html });
       qimenResult.classList.remove('hidden');
       qimenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      updateDivineBtnState('qimen', qimenBtn, '今日起局次数已用完', '起局');
     });
   }
 
@@ -636,6 +666,7 @@
       if (window.DailyCache) window.DailyCache.set(nickname, 'liuren', { html });
       liurenResult.classList.remove('hidden');
       liurenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      updateDivineBtnState('liuren', liurenBtn, '今日起课次数已用完', '起课');
     });
   }
 
@@ -681,4 +712,7 @@
   });
 
   form.addEventListener('reset', () => setTimeout(updateDayOptions, 0));
+
+  /** 初始加载时更新所有占卜按钮状态 */
+  updateAllDivineBtnStates();
 })();

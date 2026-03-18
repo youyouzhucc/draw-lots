@@ -24,12 +24,13 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  /** 抽签：基于生日+日期生成确定性结果 */
-  function draw(month, day, extra = '') {
+  /** 抽签：基于生日+日期+关注类型生成确定性结果 */
+  function draw(month, day, focus = '', extra = '') {
     const today = getTodayStr();
-    const seed = `${month}-${day}-${today}-${extra}`;
-    const idx = hash(seed) % SIGNS.length;
-    return { ...SIGNS[idx], index: idx };
+    const signs = focus && SIGNS_BY_FOCUS[focus] ? SIGNS_BY_FOCUS[focus] : SIGNS_DEFAULT;
+    const seed = `${month}-${day}-${today}-${focus}-${extra}`;
+    const idx = hash(seed) % signs.length;
+    return { ...signs[idx], index: idx };
   }
 
   /** 显示结果 */
@@ -69,8 +70,8 @@
       return;
     }
 
-    const extra = `${name}-${focus}`;
-    const signData = draw(month, day, extra);
+    const extra = name;
+    const signData = draw(month, day, focus, extra);
     const zodiac = getZodiacSign(month, day);
 
     signData.zodiac = zodiac;

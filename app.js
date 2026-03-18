@@ -4,15 +4,22 @@
  */
 (function () {
   const form = document.getElementById('form');
-  const datetimeEl = document.getElementById('datetime');
+  const dateEl = document.getElementById('datetime-date');
+  const hourEl = document.getElementById('flip-hour');
+  const minEl = document.getElementById('flip-min');
+  const secEl = document.getElementById('flip-sec');
 
-  /** 更新头部日期时间（每秒刷新） */
+  const WEEKDAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+
+  /** 更新头部日期时间（ flip 样式，每秒刷新） */
   function updateDateTime() {
-    if (!datetimeEl) return;
     const d = new Date();
-    const dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
-    const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
-    datetimeEl.textContent = dateStr + ' ' + timeStr;
+    if (dateEl) {
+      dateEl.textContent = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + WEEKDAYS[d.getDay()];
+    }
+    if (hourEl) hourEl.textContent = String(d.getHours()).padStart(2, '0');
+    if (minEl) minEl.textContent = String(d.getMinutes()).padStart(2, '0');
+    if (secEl) secEl.textContent = String(d.getSeconds()).padStart(2, '0');
   }
   updateDateTime();
   setInterval(updateDateTime, 1000);

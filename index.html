@@ -5,12 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>职场每日占卜</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <div class="container">
     <header>
-      <div id="datetime" class="datetime"></div>
+      <div id="datetime" class="datetime">
+        <div id="datetime-date" class="datetime-date"></div>
+        <div class="datetime-time">
+          <div class="flip-block"><span id="flip-hour" class="flip-num">00</span></div>
+          <span class="flip-sep">:</span>
+          <div class="flip-block"><span id="flip-min" class="flip-num">00</span></div>
+          <span class="flip-sep">:</span>
+          <div class="flip-block"><span id="flip-sec" class="flip-num">00</span></div>
+        </div>
+      </div>
       <h1>职场每日占卜</h1>
       <p class="subtitle">输入信息，抽取今日职场运势</p>
     </header>

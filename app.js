@@ -114,6 +114,59 @@
   /** 初始化日的选项（默认31天） */
   updateDayOptions();
 
+  /** 模式切换：抽签 / 六爻 */
+  const modeTabs = document.querySelectorAll('.mode-tab');
+  const sectionDraw = document.getElementById('section-draw');
+  const sectionLiuyao = document.getElementById('section-liuyao');
+  modeTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      modeTabs.forEach((t) => t.classList.remove('active'));
+      tab.classList.add('active');
+      const mode = tab.dataset.mode;
+      if (mode === 'draw') {
+        sectionDraw.classList.remove('hidden');
+        sectionLiuyao.classList.add('hidden');
+        result.classList.add('hidden');
+      } else {
+        sectionDraw.classList.add('hidden');
+        sectionLiuyao.classList.remove('hidden');
+        result.classList.add('hidden');
+      }
+    });
+  });
+
+  /** 六爻摇卦 */
+  const liuyaoBtn = document.getElementById('liuyao-btn');
+  const liuyaoResult = document.getElementById('liuyao-result');
+  const liuyaoHexagram = document.getElementById('liuyao-hexagram');
+  const liuyaoName = document.getElementById('liuyao-name');
+  const liuyaoMeaning = document.getElementById('liuyao-meaning');
+  if (liuyaoBtn) {
+    liuyaoBtn.addEventListener('click', () => {
+      const lines = [];
+      for (let i = 0; i < 6; i++) {
+        const c1 = Math.random() < 0.5 ? 2 : 3;
+        const c2 = Math.random() < 0.5 ? 2 : 3;
+        const c3 = Math.random() < 0.5 ? 2 : 3;
+        const sum = c1 + c2 + c3;
+        lines.push(sum === 7 || sum === 9 ? 1 : 0);
+      }
+      const idx = lines.reduce((acc, b, i) => acc + (b << i), 0);
+      const name = HEXAGRAM_NAMES[idx];
+      const meaning = HEXAGRAM_MEANINGS[idx];
+      const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
+      const cls = levelClass[meaning.level] || 'level-ping';
+      const lineHtml = lines.slice().reverse().map((b) =>
+        `<div class="liuyao-line-${b ? 'yang' : 'yin'}">${b ? '——' : '— —'}</div>`
+      ).join('');
+      liuyaoHexagram.innerHTML = lineHtml;
+      liuyaoName.textContent = name + '卦';
+      liuyaoMeaning.innerHTML = `<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
+      liuyaoResult.classList.remove('hidden');
+      liuyaoResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
   /** 表单提交 */
   form.addEventListener('submit', (e) => {
     e.preventDefault();

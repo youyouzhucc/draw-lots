@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>职场每日占卜</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <div class="container">
@@ -25,7 +25,12 @@
     </header>
 
     <main>
-      <section class="form-section">
+      <div class="mode-tabs">
+        <button type="button" class="mode-tab active" data-mode="draw">抽签</button>
+        <button type="button" class="mode-tab" data-mode="liuyao">六爻</button>
+      </div>
+
+      <section id="section-draw" class="form-section">
         <form id="form">
           <div class="form-row">
             <label>生日 <span class="required">*</span></label>
@@ -72,6 +77,18 @@
         </form>
       </section>
 
+      <section id="section-liuyao" class="form-section hidden">
+        <p class="liuyao-desc">心诚则灵，默念所问之事后点击摇卦</p>
+        <div class="liuyao-actions">
+          <button type="button" id="liuyao-btn" class="liuyao-btn">摇卦</button>
+        </div>
+        <div id="liuyao-result" class="liuyao-result hidden">
+          <div id="liuyao-hexagram" class="liuyao-hexagram"></div>
+          <div id="liuyao-name" class="liuyao-name"></div>
+          <div id="liuyao-meaning" class="liuyao-meaning"></div>
+        </div>
+      </section>
+
       <section id="result" class="result-section hidden">
         <div id="sign-card" class="sign-card"></div>
       </section>
@@ -81,7 +98,8 @@
       <p>每日一签，同一天同一人生成的签文固定 · 仅供娱乐</p>
     </footer>
   </div>
-  <script src="signs.js?v=3"></script>
-  <script src="app.js?v=3"></script>
+  <script src="signs.js?v=5"></script>
+  <script src="hexagrams.js?v=5"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

@@ -1,9 +1,22 @@
 /**
- * 职场每日抽签 - 主逻辑
+ * 职场每日占卜 - 主逻辑
  * 基于 生日 + 日期 生成确定性种子，保证每日一签
  */
 (function () {
   const form = document.getElementById('form');
+  const datetimeEl = document.getElementById('datetime');
+
+  /** 更新头部日期时间（每秒刷新） */
+  function updateDateTime() {
+    if (!datetimeEl) return;
+    const d = new Date();
+    const dateStr = d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+    const timeStr = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
+    datetimeEl.textContent = dateStr + ' ' + timeStr;
+  }
+  updateDateTime();
+  setInterval(updateDateTime, 1000);
+
   const result = document.getElementById('result');
   const signCard = document.getElementById('sign-card');
   const monthSelect = document.getElementById('month');

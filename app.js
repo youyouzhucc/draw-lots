@@ -28,7 +28,6 @@
   const signCard = document.getElementById('sign-card');
   const monthSelect = document.getElementById('month');
   const daySelect = document.getElementById('day');
-  const resetBtn = document.getElementById('reset-btn');
 
   /** 根据月份获取天数（2月按29天，兼容闰年） */
   function getDaysInMonth(month) {
@@ -208,8 +207,24 @@
       monthSelect.setAttribute('required', '');
       daySelect.setAttribute('required', '');
     }
+    updateDrawBtnState();
   }
   if (window.Auth) applyAuthState();
+
+  /** 根据今日是否已抽签，更新抽签按钮状态 */
+  function updateDrawBtnState() {
+    const drawBtn = document.getElementById('draw-btn');
+    if (!drawBtn) return;
+    const nickname = getNickname();
+    const used = window.DailyCache && window.DailyCache.hasUsed(nickname, 'draw');
+    if (used) {
+      drawBtn.disabled = true;
+      drawBtn.textContent = '今日抽签次数已用完';
+    } else {
+      drawBtn.disabled = false;
+      drawBtn.textContent = '抽签';
+    }
+  }
 
   if (authClose) authClose.addEventListener('click', () => { authModal && authModal.classList.add('hidden'); });
   if (logoutLink) logoutLink.addEventListener('click', (e) => {
@@ -326,6 +341,7 @@
       const nickname = getNickname();
       const cached = window.DailyCache && window.DailyCache.get(nickname, mode);
       if (cached) restoreResult(mode, cached);
+      if (mode === 'draw') updateDrawBtnState();
     });
   });
 
@@ -628,22 +644,8 @@
     const toSave = { zodiac: signData.zodiac, level: signData.level, title: signData.title, text: signData.text, advice: signData.advice };
     if (window.DailyCache) window.DailyCache.set(nickname, 'draw', toSave);
     showResult(signData);
+    updateDrawBtnState();
   });
 
   form.addEventListener('reset', () => setTimeout(updateDayOptions, 0));
-
-  /** 重置 */
-  if (resetBtn) {
-    resetBtn.addEventListener('click', () => {
-      result.classList.add('hidden');
-      form.reset();
-      const user = window.Auth && window.Auth.getCurrent();
-      if (user) {
-        monthSelect.value = user.month;
-        daySelect.value = user.day;
-        document.getElementById('name').value = user.nickname;
-      }
-      updateDayOptions();
-    });
-  }
 })();

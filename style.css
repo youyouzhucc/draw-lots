@@ -601,6 +601,22 @@ header h1 {
   box-shadow: 0 6px 20px rgba(240, 147, 251, 0.45);
 }
 
+.form-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.form-actions button[type="submit"]:disabled {
+  background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+  box-shadow: none;
+}
+
+.form-actions button:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 .form-actions button[type="button"] {
   background: #f7fafc;
   color: var(--muted);

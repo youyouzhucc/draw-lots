@@ -118,6 +118,14 @@
   const modeTabs = document.querySelectorAll('.mode-tab');
   const sectionDraw = document.getElementById('section-draw');
   const sectionLiuyao = document.getElementById('section-liuyao');
+  function checkLiuyaoLimit() {
+    if (!canLiuyaoToday() && liuyaoResult.classList.contains('hidden')) {
+      liuyaoLimitMsg.classList.remove('hidden');
+    } else if (canLiuyaoToday()) {
+      liuyaoLimitMsg.classList.add('hidden');
+    }
+  }
+
   modeTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       modeTabs.forEach((t) => t.classList.remove('active'));
@@ -131,18 +139,39 @@
         sectionDraw.classList.add('hidden');
         sectionLiuyao.classList.remove('hidden');
         result.classList.add('hidden');
+        checkLiuyaoLimit();
       }
     });
   });
 
-  /** 六爻摇卦 */
+  /** 六爻摇卦（每日限一次） */
+  const LIUYAO_KEY = 'liuyao_last_date';
   const liuyaoBtn = document.getElementById('liuyao-btn');
   const liuyaoResult = document.getElementById('liuyao-result');
+  const liuyaoLimitMsg = document.getElementById('liuyao-limit-msg');
   const liuyaoHexagram = document.getElementById('liuyao-hexagram');
   const liuyaoName = document.getElementById('liuyao-name');
   const liuyaoMeaning = document.getElementById('liuyao-meaning');
+
+  function getTodayDateStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function canLiuyaoToday() {
+    const last = localStorage.getItem(LIUYAO_KEY);
+    return last !== getTodayDateStr();
+  }
+
   if (liuyaoBtn) {
     liuyaoBtn.addEventListener('click', () => {
+      if (!canLiuyaoToday()) {
+        liuyaoResult.classList.add('hidden');
+        liuyaoLimitMsg.classList.remove('hidden');
+        liuyaoLimitMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+      liuyaoLimitMsg.classList.add('hidden');
       const lines = [];
       for (let i = 0; i < 6; i++) {
         const c1 = Math.random() < 0.5 ? 2 : 3;
@@ -163,9 +192,11 @@
       liuyaoName.textContent = name + '卦';
       liuyaoMeaning.innerHTML = `<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
       liuyaoResult.classList.remove('hidden');
+      localStorage.setItem(LIUYAO_KEY, getTodayDateStr());
       liuyaoResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
   }
+
 
   /** 表单提交 */
   form.addEventListener('submit', (e) => {

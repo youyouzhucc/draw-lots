@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>职场每日占卜</title>
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <link rel="stylesheet" href="style.css?v=5" />
+  <link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <div class="container">
@@ -78,14 +78,25 @@
       </section>
 
       <section id="section-liuyao" class="form-section hidden">
-        <p class="liuyao-desc">心诚则灵，默念所问之事后点击摇卦</p>
+        <div class="liuyao-intro">
+          <p class="liuyao-desc">六爻源于《易经》，以三枚硬币投掷六次得一卦，共六十四卦。心诚则灵，默念所问之事后点击摇卦。</p>
+          <p class="liuyao-rule">每日仅可摇卦一次，以示诚心。</p>
+        </div>
         <div class="liuyao-actions">
           <button type="button" id="liuyao-btn" class="liuyao-btn">摇卦</button>
         </div>
+        <p id="liuyao-limit-msg" class="liuyao-limit-msg hidden">今日已摇过卦，请明日再来。</p>
         <div id="liuyao-result" class="liuyao-result hidden">
           <div id="liuyao-hexagram" class="liuyao-hexagram"></div>
           <div id="liuyao-name" class="liuyao-name"></div>
           <div id="liuyao-meaning" class="liuyao-meaning"></div>
+          <div class="liuyao-explain">
+            <div class="explain-title">如何解读</div>
+            <p><strong>卦象</strong>：六条线从上到下依次为上爻、五爻、四爻、三爻、二爻、初爻，由六次投掷所得。</p>
+            <p><strong>阳爻 ——</strong> 实线，代表阳刚、主动、进取。</p>
+            <p><strong>阴爻 — —</strong> 断线，代表阴柔、顺应、守成。</p>
+            <p>六十四卦各有卦辞，结合职场情境给出运势参考，仅供娱乐。</p>
+          </div>
         </div>
       </section>
 

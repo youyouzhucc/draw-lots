@@ -150,11 +150,52 @@ header h1 {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.liuyao-intro {
+  margin-bottom: 1rem;
+}
+
 .liuyao-desc {
   font-size: 0.9rem;
   color: var(--muted);
-  margin-bottom: 1rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.liuyao-rule {
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-bottom: 0;
+}
+
+.liuyao-limit-msg {
   text-align: center;
+  color: var(--moji);
+  font-size: 0.95rem;
+  margin-top: 1rem;
+}
+
+.liuyao-limit-msg.hidden {
+  display: none;
+}
+
+.liuyao-explain {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.7;
+  text-align: left;
+}
+
+.liuyao-explain .explain-title {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.liuyao-explain p {
+  margin-bottom: 0.4rem;
 }
 
 .liuyao-actions {

@@ -338,25 +338,6 @@ header h1 {
   margin-bottom: 0.5rem;
 }
 
-.liuyao-rule {
-  font-size: 0.85rem;
-  color: var(--accent-2);
-  margin-bottom: 0;
-  font-weight: 500;
-}
-
-.liuyao-limit-msg {
-  text-align: center;
-  color: var(--moji);
-  font-size: 0.95rem;
-  margin-top: 1rem;
-  font-weight: 500;
-}
-
-.liuyao-limit-msg.hidden {
-  display: none;
-}
-
 .liuyao-explain {
   margin-top: 1.25rem;
   padding-top: 1rem;

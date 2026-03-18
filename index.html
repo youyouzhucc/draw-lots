@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>职场每日抽签</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>职场每日抽签</h1>
+      <p class="subtitle">输入信息，抽取今日职场运势</p>
+    </header>
+
+    <main>
+      <section class="form-section">
+        <form id="form">
+          <div class="form-row">
+            <label>生日 <span class="required">*</span></label>
+            <div class="birth-inputs">
+              <input type="number" id="month" placeholder="月" min="1" max="12" required />
+              <span>月</span>
+              <input type="number" id="day" placeholder="日" min="1" max="31" required />
+              <span>日</span>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>昵称</label>
+            <input type="text" id="name" placeholder="可选，用于个性化称呼" />
+          </div>
+          <div class="form-row">
+            <label>当前关注</label>
+            <select id="focus">
+              <option value="">-- 可选 --</option>
+              <option value="升职">升职加薪</option>
+              <option value="跳槽">跳槽转岗</option>
+              <option value="面试">面试求职</option>
+              <option value="团队">团队合作</option>
+              <option value="项目">项目推进</option>
+              <option value="沟通">沟通协调</option>
+              <option value="学习">学习成长</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="draw-btn">抽签</button>
+            <button type="button" id="reset-btn">重置</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="result" class="result-section hidden">
+        <div id="sign-card" class="sign-card"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>每日一签，同一天同一人生成的签文固定 · 仅供娱乐</p>
+    </footer>
+  </div>
+  <script src="signs.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

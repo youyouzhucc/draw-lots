@@ -235,27 +235,55 @@
     }
   });
 
-  /** 模式切换：抽签 / 六爻 */
+  /** 模式切换：抽签 / 六爻 / 八字 / 紫微 / 相学 / 奇门 / 六壬 */
   const modeTabs = document.querySelectorAll('.mode-tab');
-  const sectionDraw = document.getElementById('section-draw');
-  const sectionLiuyao = document.getElementById('section-liuyao');
+  const sections = {
+    draw: document.getElementById('section-draw'),
+    liuyao: document.getElementById('section-liuyao'),
+    bazi: document.getElementById('section-bazi'),
+    ziwei: document.getElementById('section-ziwei'),
+    xiangxue: document.getElementById('section-xiangxue'),
+    qimen: document.getElementById('section-qimen'),
+    liuren: document.getElementById('section-liuren'),
+  };
+
+  function hideAllDivineResults() {
+    const ids = ['liuyao-result', 'bazi-result', 'ziwei-result', 'xiangxue-result', 'qimen-result', 'liuren-result'];
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
+  }
 
   modeTabs.forEach((tab) => {
     tab.addEventListener('click', () => {
       modeTabs.forEach((t) => t.classList.remove('active'));
       tab.classList.add('active');
       const mode = tab.dataset.mode;
-      if (mode === 'draw') {
-        sectionDraw.classList.remove('hidden');
-        sectionLiuyao.classList.add('hidden');
-        result.classList.add('hidden');
-      } else {
-        sectionDraw.classList.add('hidden');
-        sectionLiuyao.classList.remove('hidden');
-        result.classList.add('hidden');
-      }
+      Object.values(sections).forEach((s) => s && s.classList.add('hidden'));
+      if (sections[mode]) sections[mode].classList.remove('hidden');
+      result.classList.add('hidden');
+      hideAllDivineResults();
     });
   });
+
+  /** 通用：更新日选项（用于八字/紫微/相学表单） */
+  function updateDayOptionsFor(monthSelect, daySelect) {
+    if (!monthSelect || !daySelect) return;
+    const month = monthSelect.value;
+    if (!month) {
+      daySelect.innerHTML = '<option value="">日</option>';
+      return;
+    }
+    const days = getDaysInMonth(month);
+    daySelect.innerHTML = '<option value="">日</option>';
+    for (let d = 1; d <= days; d++) {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d + '日';
+      daySelect.appendChild(opt);
+    }
+  }
 
   /** 六爻摇卦 */
   const liuyaoBtn = document.getElementById('liuyao-btn');
@@ -290,6 +318,162 @@
     });
   }
 
+  /** 八字排盘 */
+  const formBazi = document.getElementById('form-bazi');
+  const baziMonth = document.getElementById('bazi-month');
+  const baziDay = document.getElementById('bazi-day');
+  const baziResult = document.getElementById('bazi-result');
+  if (baziMonth) baziMonth.addEventListener('change', () => updateDayOptionsFor(baziMonth, baziDay));
+  if (formBazi && baziResult) {
+    formBazi.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const month = parseInt(baziMonth?.value, 10);
+      const day = parseInt(baziDay?.value, 10);
+      const shichen = parseInt(document.getElementById('bazi-shichen')?.value || '0', 10);
+      if (!month || !day) {
+        alert('请选择生日');
+        return;
+      }
+      const today = getTodayStr();
+      const seed = `${month}-${day}-${shichen}-${today}`;
+      const idx = hash(seed) % BAZI_CAREER.length;
+      const career = BAZI_CAREER[idx];
+      const s = String(hash(seed));
+      const pillar = (i) => TIAN_GAN[Math.abs(hash(s + i)) % 10] + DI_ZHI[Math.abs(hash(s + i + 10)) % 12];
+      const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
+      const cls = levelClass[career.level] || 'level-ping';
+      baziResult.innerHTML = `
+        <div class="bazi-pillars">
+          <div class="bazi-labels">年柱 月柱 日柱 时柱</div>
+          <div class="bazi-values">${pillar(0)} ${pillar(1)} ${pillar(2)} ${pillar(3)}</div>
+        </div>
+        <div class="bazi-shichen">出生时辰：${SHI_CHEN[shichen]}</div>
+        <div class="sign-level ${cls}">${career.level}</div>
+        <div class="sign-text">${career.text}</div>
+        <div class="sign-advice">💡 ${career.advice}</div>
+      `;
+      baziResult.classList.remove('hidden');
+      baziResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  /** 紫微查星 */
+  const formZiwei = document.getElementById('form-ziwei');
+  const ziweiMonth = document.getElementById('ziwei-month');
+  const ziweiDay = document.getElementById('ziwei-day');
+  const ziweiResult = document.getElementById('ziwei-result');
+  if (ziweiMonth) ziweiMonth.addEventListener('change', () => updateDayOptionsFor(ziweiMonth, ziweiDay));
+  if (formZiwei && ziweiResult) {
+    formZiwei.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const month = parseInt(ziweiMonth?.value, 10);
+      const day = parseInt(ziweiDay?.value, 10);
+      if (!month || !day) {
+        alert('请选择生日');
+        return;
+      }
+      const today = getTodayStr();
+      const seed = `${month}-${day}-${today}`;
+      const idx = hash(seed) % ZIWEI_STARS.length;
+      const star = ZIWEI_STARS[idx];
+      const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
+      const cls = levelClass[star.level] || 'level-ping';
+      ziweiResult.innerHTML = `
+        <div class="ziwei-star">${star.name}星</div>
+        <div class="sign-level ${cls}">${star.level}</div>
+        <div class="sign-text">${star.text}</div>
+        <div class="sign-advice">💡 ${star.advice}</div>
+      `;
+      ziweiResult.classList.remove('hidden');
+      ziweiResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  /** 相学观相 */
+  const formXiangxue = document.getElementById('form-xiangxue');
+  const xiangxueMonth = document.getElementById('xiangxue-month');
+  const xiangxueDay = document.getElementById('xiangxue-day');
+  const xiangxueResult = document.getElementById('xiangxue-result');
+  if (xiangxueMonth) xiangxueMonth.addEventListener('change', () => updateDayOptionsFor(xiangxueMonth, xiangxueDay));
+  if (formXiangxue && xiangxueResult) {
+    formXiangxue.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const month = parseInt(xiangxueMonth?.value, 10);
+      const day = parseInt(xiangxueDay?.value, 10);
+      if (!month || !day) {
+        alert('请选择生日');
+        return;
+      }
+      const today = getTodayStr();
+      const seed = `${month}-${day}-${today}`;
+      const partIdx1 = hash(seed) % XIANGXUE_PARTS.length;
+      let partIdx2 = (hash(seed + 'x') % XIANGXUE_PARTS.length);
+      if (partIdx2 === partIdx1) partIdx2 = (partIdx2 + 1) % XIANGXUE_PARTS.length;
+      const careerIdx = hash(seed + 'c') % XIANGXUE_CAREER.length;
+      const part1 = XIANGXUE_PARTS[partIdx1];
+      const part2 = XIANGXUE_PARTS[partIdx2];
+      const career = XIANGXUE_CAREER[careerIdx];
+      const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
+      const cls = levelClass[career.level] || 'level-ping';
+      xiangxueResult.innerHTML = `
+        <div class="xiangxue-parts">今日面相重点：<strong>${part1.part}</strong>、<strong>${part2.part}</strong></div>
+        <div class="sign-text">${part1.desc} ${part2.desc}</div>
+        <div class="sign-level ${cls}">${career.level}</div>
+        <div class="sign-text">${career.text}</div>
+        <div class="sign-advice">💡 ${career.advice}</div>
+      `;
+      xiangxueResult.classList.remove('hidden');
+      xiangxueResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  /** 奇门起局 */
+  const qimenBtn = document.getElementById('qimen-btn');
+  const qimenResult = document.getElementById('qimen-result');
+  if (qimenBtn && qimenResult) {
+    qimenBtn.addEventListener('click', () => {
+      const today = getTodayStr();
+      const seed = hash(today);
+      const doorIdx = (seed % QIMEN_DOORS.length + QIMEN_DOORS.length) % QIMEN_DOORS.length;
+      const starIdx = ((seed >> 8) % QIMEN_STARS.length + QIMEN_STARS.length) % QIMEN_STARS.length;
+      const dirIdx = ((seed >> 16) % QIMEN_DIRECTIONS.length + QIMEN_DIRECTIONS.length) % QIMEN_DIRECTIONS.length;
+      const careerIdx = ((seed >> 24) % QIMEN_CAREER.length + QIMEN_CAREER.length) % QIMEN_CAREER.length;
+      const career = QIMEN_CAREER[careerIdx];
+      const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
+      const cls = levelClass[career.level] || 'level-ping';
+      qimenResult.innerHTML = `
+        <div class="qimen-info">今日：${QIMEN_DOORS[doorIdx]} · ${QIMEN_STARS[starIdx]} · 吉方位：${QIMEN_DIRECTIONS[dirIdx]}</div>
+        <div class="sign-level ${cls}">${career.level}</div>
+        <div class="sign-text">${career.text}</div>
+        <div class="sign-advice">💡 ${career.advice}</div>
+      `;
+      qimenResult.classList.remove('hidden');
+      qimenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  /** 六壬起课 */
+  const liurenBtn = document.getElementById('liuren-btn');
+  const liurenResult = document.getElementById('liuren-result');
+  if (liurenBtn && liurenResult) {
+    liurenBtn.addEventListener('click', () => {
+      const today = getTodayStr();
+      const seed = hash(today);
+      const godIdx = (seed % LIUREN_GODS.length + LIUREN_GODS.length) % LIUREN_GODS.length;
+      const careerIdx = ((seed >> 8) % LIUREN_CAREER.length + LIUREN_CAREER.length) % LIUREN_CAREER.length;
+      const career = LIUREN_CAREER[careerIdx];
+      const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
+      const cls = levelClass[career.level] || 'level-ping';
+      liurenResult.innerHTML = `
+        <div class="liuren-info">今日发用：<strong>${LIUREN_GODS[godIdx]}</strong></div>
+        <div class="sign-level ${cls}">${career.level}</div>
+        <div class="sign-text">${career.text}</div>
+        <div class="sign-advice">💡 ${career.advice}</div>
+      `;
+      liurenResult.classList.remove('hidden');
+      liurenResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
 
   /** 表单提交 */
   form.addEventListener('submit', (e) => {

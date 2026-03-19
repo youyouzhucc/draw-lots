@@ -135,30 +135,6 @@
               <option value="项目推进">项目起飞</option>
             </select>
           </div>
-          <div class="form-row divine-heart">
-            <label>心中所念</label>
-            <input type="text" id="draw-thought" placeholder="心中默念之事，如：希望面试顺利" maxlength="50" />
-          </div>
-          <div class="form-row divine-heart">
-            <label>今日心境</label>
-            <select id="draw-mood">
-              <option value="">-- 可选 --</option>
-              <option value="平静">平静</option>
-              <option value="期待">期待</option>
-              <option value="焦虑">焦虑</option>
-              <option value="迷茫">迷茫</option>
-              <option value="开心">开心</option>
-            </select>
-          </div>
-          <div class="form-row divine-heart">
-            <label>幸运数字</label>
-            <select id="draw-lucky">
-              <option value="">-- 可选 --</option>
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-            </select>
-          </div>
           <div class="form-actions">
             <button type="submit" id="draw-btn">抽签</button>
           </div>
@@ -177,29 +153,9 @@
             <option value="财富">财富</option>
           </select>
         </div>
-        <div class="form-row divine-heart">
-          <label>心中所念</label>
-          <input type="text" id="liuyao-thought" placeholder="心中默念之事，如：希望面试顺利" maxlength="50" />
-        </div>
-        <div class="form-row divine-heart">
-          <label>今日心境</label>
-          <select id="liuyao-mood">
-            <option value="">-- 可选 --</option>
-            <option value="平静">平静</option>
-            <option value="期待">期待</option>
-            <option value="焦虑">焦虑</option>
-            <option value="迷茫">迷茫</option>
-            <option value="开心">开心</option>
-          </select>
-        </div>
-        <div class="form-row divine-heart">
-          <label>幸运数字</label>
-          <select id="liuyao-lucky">
-            <option value="">-- 可选 --</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-          </select>
+        <div class="form-row">
+          <label>具体问题 <span class="required">*</span></label>
+          <input type="text" id="liuyao-question" placeholder="请输入所问之事，如：今日面试能否顺利" maxlength="80" required />
         </div>
         <div class="liuyao-actions">
           <button type="button" id="liuyao-btn" class="liuyao-btn">摇卦</button>
@@ -231,33 +187,12 @@
               <option value="财富">财富</option>
             </select>
           </div>
-          <div class="form-row divine-heart">
-            <label>心中所念</label>
-            <input type="text" id="bazi-thought" placeholder="心中默念之事" maxlength="50" />
-          </div>
-          <div class="form-row divine-heart">
-            <label>今日心境</label>
-            <select id="bazi-mood">
-              <option value="">-- 可选 --</option>
-              <option value="平静">平静</option>
-              <option value="期待">期待</option>
-              <option value="焦虑">焦虑</option>
-              <option value="迷茫">迷茫</option>
-              <option value="开心">开心</option>
-            </select>
-          </div>
-          <div class="form-row divine-heart">
-            <label>幸运数字</label>
-            <select id="bazi-lucky">
-              <option value="">-- 可选 --</option>
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-            </select>
-          </div>
           <div class="form-row">
-            <label>生日 <span class="required">*</span></label>
-            <div class="birth-inputs">
+            <label>出生年月日时 <span class="required">*</span></label>
+            <div class="birth-inputs birth-full">
+              <select id="bazi-year" required>
+                <option value="">年</option>
+              </select>
               <select id="bazi-month" required>
                 <option value="">月</option>
                 <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
@@ -266,16 +201,26 @@
                 <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
               </select>
               <select id="bazi-day" required><option value="">日</option></select>
-            </div>
-          </div>
-          <div class="form-row">
-            <label>出生时辰</label>
-            <select id="bazi-shichen">
+              <select id="bazi-shichen" required>
               <option value="0">子时(23-1)</option><option value="1">丑时(1-3)</option><option value="2">寅时(3-5)</option>
               <option value="3">卯时(5-7)</option><option value="4">辰时(7-9)</option><option value="5">巳时(9-11)</option>
               <option value="6">午时(11-13)</option><option value="7">未时(13-15)</option><option value="8">申时(15-17)</option>
-              <option value="9">酉时(17-19)</option><option value="10">戌时(19-21)</option><option value="11">亥时(21-23)</option>
+              <option value="9">酉时(17-19)</option><option value="10">戌时(19-21)</option>
+              <option value="11">亥时(21-23)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>性别 <span class="required">*</span></label>
+            <select id="bazi-gender" required>
+              <option value="">请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
             </select>
+          </div>
+          <div class="form-row">
+            <label>出生地 <span class="required">*</span></label>
+            <input type="text" id="bazi-birthplace" placeholder="如：北京、上海" maxlength="20" required />
           </div>
           <div class="form-actions">
             <button type="submit" class="divine-btn">排盘</button>
@@ -297,33 +242,12 @@
               <option value="财富">财富</option>
             </select>
           </div>
-          <div class="form-row divine-heart">
-            <label>心中所念</label>
-            <input type="text" id="ziwei-thought" placeholder="心中默念之事" maxlength="50" />
-          </div>
-          <div class="form-row divine-heart">
-            <label>今日心境</label>
-            <select id="ziwei-mood">
-              <option value="">-- 可选 --</option>
-              <option value="平静">平静</option>
-              <option value="期待">期待</option>
-              <option value="焦虑">焦虑</option>
-              <option value="迷茫">迷茫</option>
-              <option value="开心">开心</option>
-            </select>
-          </div>
-          <div class="form-row divine-heart">
-            <label>幸运数字</label>
-            <select id="ziwei-lucky">
-              <option value="">-- 可选 --</option>
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-            </select>
-          </div>
           <div class="form-row">
-            <label>生日 <span class="required">*</span></label>
-            <div class="birth-inputs">
+            <label>出生年月日时 <span class="required">*</span></label>
+            <div class="birth-inputs birth-full">
+              <select id="ziwei-year" required>
+                <option value="">年</option>
+              </select>
               <select id="ziwei-month" required>
                 <option value="">月</option>
                 <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
@@ -332,7 +256,26 @@
                 <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
               </select>
               <select id="ziwei-day" required><option value="">日</option></select>
+              <select id="ziwei-shichen" required>
+                <option value="">时</option>
+                <option value="0">子时(23-1)</option><option value="1">丑时(1-3)</option><option value="2">寅时(3-5)</option>
+                <option value="3">卯时(5-7)</option><option value="4">辰时(7-9)</option><option value="5">巳时(9-11)</option>
+                <option value="6">午时(11-13)</option><option value="7">未时(13-15)</option><option value="8">申时(15-17)</option>
+                <option value="9">酉时(17-19)</option><option value="10">戌时(19-21)</option><option value="11">亥时(21-23)</option>
+              </select>
             </div>
+          </div>
+          <div class="form-row">
+            <label>性别 <span class="required">*</span></label>
+            <select id="ziwei-gender" required>
+              <option value="">请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>出生地 <span class="required">*</span></label>
+            <input type="text" id="ziwei-birthplace" placeholder="如：北京、上海" maxlength="20" required />
           </div>
           <div class="form-actions">
             <button type="submit" class="divine-btn">查星</button>
@@ -354,28 +297,12 @@
               <option value="财富">财富</option>
             </select>
           </div>
-          <div class="form-row divine-heart">
-            <label>心中所念</label>
-            <input type="text" id="xiangxue-thought" placeholder="心中默念之事" maxlength="50" />
-          </div>
-          <div class="form-row divine-heart">
-            <label>今日心境</label>
-            <select id="xiangxue-mood">
-              <option value="">-- 可选 --</option>
-              <option value="平静">平静</option>
-              <option value="期待">期待</option>
-              <option value="焦虑">焦虑</option>
-              <option value="迷茫">迷茫</option>
-              <option value="开心">开心</option>
-            </select>
-          </div>
-          <div class="form-row divine-heart">
-            <label>幸运数字</label>
-            <select id="xiangxue-lucky">
-              <option value="">-- 可选 --</option>
-              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-              <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-              <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+          <div class="form-row">
+            <label>性别 <span class="required">*</span></label>
+            <select id="xiangxue-gender" required>
+              <option value="">请选择</option>
+              <option value="男">男</option>
+              <option value="女">女</option>
             </select>
           </div>
           <div class="form-row">
@@ -410,29 +337,9 @@
             <option value="财富">财富</option>
           </select>
         </div>
-        <div class="form-row divine-heart">
-          <label>心中所念</label>
-          <input type="text" id="qimen-thought" placeholder="心中默念之事" maxlength="50" />
-        </div>
-        <div class="form-row divine-heart">
-          <label>今日心境</label>
-          <select id="qimen-mood">
-            <option value="">-- 可选 --</option>
-            <option value="平静">平静</option>
-            <option value="期待">期待</option>
-            <option value="焦虑">焦虑</option>
-            <option value="迷茫">迷茫</option>
-            <option value="开心">开心</option>
-          </select>
-        </div>
-        <div class="form-row divine-heart">
-          <label>幸运数字</label>
-          <select id="qimen-lucky">
-            <option value="">-- 可选 --</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-          </select>
+        <div class="form-row">
+          <label>求测问题 <span class="required">*</span></label>
+          <input type="text" id="qimen-question" placeholder="请输入所问之事" maxlength="80" required />
         </div>
         <div class="divine-actions">
           <button type="button" id="qimen-btn" class="divine-btn">起局</button>
@@ -452,29 +359,9 @@
             <option value="财富">财富</option>
           </select>
         </div>
-        <div class="form-row divine-heart">
-          <label>心中所念</label>
-          <input type="text" id="liuren-thought" placeholder="心中默念之事" maxlength="50" />
-        </div>
-        <div class="form-row divine-heart">
-          <label>今日心境</label>
-          <select id="liuren-mood">
-            <option value="">-- 可选 --</option>
-            <option value="平静">平静</option>
-            <option value="期待">期待</option>
-            <option value="焦虑">焦虑</option>
-            <option value="迷茫">迷茫</option>
-            <option value="开心">开心</option>
-          </select>
-        </div>
-        <div class="form-row divine-heart">
-          <label>幸运数字</label>
-          <select id="liuren-lucky">
-            <option value="">-- 可选 --</option>
-            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
-            <option value="4">4</option><option value="5">5</option><option value="6">6</option>
-            <option value="7">7</option><option value="8">8</option><option value="9">9</option>
-          </select>
+        <div class="form-row">
+          <label>求测问题 <span class="required">*</span></label>
+          <input type="text" id="liuren-question" placeholder="请输入所问之事" maxlength="80" required />
         </div>
         <div class="divine-actions">
           <button type="button" id="liuren-btn" class="divine-btn">起课</button>

@@ -720,18 +720,23 @@ header h1 {
   border-left: 4px solid var(--accent);
 }
 
-.mood-prefix {
+.question-prefix {
   font-size: 0.9rem;
   color: var(--muted);
-  font-style: italic;
   margin-bottom: 0.75rem;
   padding: 0.5rem 0;
   border-bottom: 1px dashed rgba(113, 128, 150, 0.3);
 }
 
-.divine-heart input,
-.divine-heart select {
-  font-size: 0.95rem;
+.birth-full {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.birth-full select {
+  flex: 1;
+  min-width: 0;
 }
 
 footer {

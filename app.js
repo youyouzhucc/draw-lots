@@ -29,11 +29,14 @@
   const monthSelect = document.getElementById('month');
   const daySelect = document.getElementById('day');
 
-  /** 根据月份获取天数（2月按29天，兼容闰年） */
-  function getDaysInMonth(month) {
+  /** 根据月份获取天数，2月考虑闰年（传入年时） */
+  function getDaysInMonth(month, year) {
     const m = parseInt(month, 10);
     if (!m || m < 1 || m > 12) return 31;
-    if (m === 2) return 29;
+    if (m === 2) {
+      if (year && (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0))) return 29;
+      return year ? 28 : 29;
+    }
     if ([4, 6, 9, 11].includes(m)) return 30;
     return 31;
   }
@@ -76,14 +79,13 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  /** 抽签：基于生日+日期+关注类型+心意生成确定性结果，千人千面 */
-  function draw(month, day, focus = '', extra = '', heart = {}) {
+  /** 抽签：基于生日+日期+关注类型生成确定性结果 */
+  function draw(month, day, focus = '', extra = '') {
     const today = getTodayStr();
     const signs = focus && SIGNS_BY_FOCUS[focus] ? SIGNS_BY_FOCUS[focus] : SIGNS_DEFAULT;
-    const { thought = '', mood = '', lucky = '' } = heart;
-    const seed = `${month}-${day}-${today}-${focus}-${extra}-${thought}-${mood}-${lucky}`;
+    const seed = `${month}-${day}-${today}-${focus}-${extra}`;
     const idx = hash(seed) % signs.length;
-    return { ...signs[idx], index: idx, moodPrefix: getMoodPrefix(mood) };
+    return { ...signs[idx], index: idx };
   }
 
   /** 显示结果 */
@@ -98,11 +100,9 @@
       '凶': 'level-xiong',
     };
     const cls = levelClass[data.level] || 'level-ping';
-    const moodLine = data.moodPrefix ? `<div class="mood-prefix">${data.moodPrefix}</div>` : '';
 
     signCard.innerHTML = `
       ${data.zodiac ? `<div class="sign-zodiac">${data.zodiac}</div>` : ''}
-      ${moodLine}
       <div class="sign-level ${cls}">${data.level}</div>
       <div class="sign-title">${data.title}</div>
       <div class="sign-text">${data.text}</div>
@@ -273,27 +273,6 @@
   /** 获取六种占卜的缓存 key（按模式+主题区分） */
   function getDivineCacheKey(mode) {
     return mode + ':' + getDivineTheme(mode);
-  }
-
-  /** 获取占卜心意（心中所念、今日心境、幸运数字），用于种子与千人千面 */
-  function getDivineHeart(mode) {
-    const prefix = mode === 'draw' ? 'draw' : mode;
-    const thought = (document.getElementById(prefix + '-thought')?.value || '').trim().slice(0, 50);
-    const mood = (document.getElementById(prefix + '-mood')?.value || '').trim();
-    const lucky = (document.getElementById(prefix + '-lucky')?.value || '').trim();
-    return { thought, mood, lucky };
-  }
-
-  /** 心境对应的个性化开场，千人千面 */
-  const MOOD_PREFIX = {
-    平静: '',
-    期待: '你带着期待而来，卦象如是回应——',
-    焦虑: '你今日心事略重，不妨先静一静，再细品下文。',
-    迷茫: '你正处迷茫，卦象或可给你一点方向。',
-    开心: '你今日心情不错，卦象亦锦上添花。',
-  };
-  function getMoodPrefix(mood) {
-    return (mood && MOOD_PREFIX[mood]) ? MOOD_PREFIX[mood] : '';
   }
 
   /** 根据当前关注类型是否已抽签，更新抽签按钮状态 */
@@ -531,21 +510,37 @@
     if (cached) showResult(cached);
   }
 
-  /** 通用：更新日选项（用于八字/紫微/相学表单） */
-  function updateDayOptionsFor(monthSelect, daySelect) {
+  /** 通用：更新日选项（用于八字/紫微/相学表单），可选传入年以判断闰年 */
+  function updateDayOptionsFor(monthSelect, daySelect, yearSelect) {
     if (!monthSelect || !daySelect) return;
     const month = monthSelect.value;
+    let year = null;
+    if (yearSelect && yearSelect.value) year = parseInt(yearSelect.value, 10);
     if (!month) {
       daySelect.innerHTML = '<option value="">日</option>';
       return;
     }
-    const days = getDaysInMonth(month);
+    const days = getDaysInMonth(month, year);
     daySelect.innerHTML = '<option value="">日</option>';
     for (let d = 1; d <= days; d++) {
       const opt = document.createElement('option');
       opt.value = d;
       opt.textContent = d + '日';
       daySelect.appendChild(opt);
+    }
+  }
+
+  /** 填充年份下拉（如 1950-2010） */
+  function fillYearOptions(el, start, end) {
+    if (!el) return;
+    const s = start || 1950;
+    const e = end || new Date().getFullYear();
+    el.innerHTML = '<option value="">年</option>';
+    for (let y = e; y >= s; y--) {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y + '年';
+      el.appendChild(opt);
     }
   }
 
@@ -559,6 +554,11 @@
   if (liuyaoBtn) {
     liuyaoBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
+      const question = (document.getElementById('liuyao-question')?.value || '').trim();
+      if (!question) {
+        alert('请输入具体问题');
+        return;
+      }
       const nickname = getNickname();
       const theme = getDivineTheme('liuyao');
       const cacheKey = getDivineCacheKey('liuyao');
@@ -584,12 +584,10 @@
       const lineHtml = lines.slice().reverse().map((b) =>
         `<div class="liuyao-line-${b ? 'yang' : 'yin'}">${b ? '——' : '— —'}</div>`
       ).join('');
-      const heart = getDivineHeart('liuyao');
-      const moodPrefix = getMoodPrefix(heart.mood);
-      const moodLine = moodPrefix ? `<div class="mood-prefix">${moodPrefix}</div>` : '';
+      const questionLine = question ? `<div class="question-prefix">所问：${question}</div>` : '';
       liuyaoHexagram.innerHTML = lineHtml;
       liuyaoName.textContent = name + '卦';
-      const meaningHtml = `${moodLine}<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
+      const meaningHtml = `${questionLine}<div class="level ${cls}">${meaning.level}</div><div>${meaning.text}</div><div class="advice">💡 ${meaning.advice}</div>`;
       liuyaoMeaning.innerHTML = meaningHtml;
       if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, { lineHtml, name: name + '卦', meaningHtml });
       liuyaoResult.classList.remove('hidden');
@@ -600,10 +598,13 @@
 
   /** 八字排盘 */
   const formBazi = document.getElementById('form-bazi');
+  const baziYear = document.getElementById('bazi-year');
   const baziMonth = document.getElementById('bazi-month');
   const baziDay = document.getElementById('bazi-day');
   const baziResult = document.getElementById('bazi-result');
-  if (baziMonth) baziMonth.addEventListener('change', () => updateDayOptionsFor(baziMonth, baziDay));
+  fillYearOptions(baziYear, 1950, new Date().getFullYear());
+  if (baziMonth) baziMonth.addEventListener('change', () => updateDayOptionsFor(baziMonth, baziDay, baziYear));
+  if (baziYear) baziYear.addEventListener('change', () => updateDayOptionsFor(baziMonth, baziDay, baziYear));
   if (formBazi && baziResult) {
     formBazi.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -616,16 +617,22 @@
         restoreResult('bazi', cached);
         return;
       }
+      const year = parseInt(baziYear?.value, 10);
       const month = parseInt(baziMonth?.value, 10);
       const day = parseInt(baziDay?.value, 10);
       const shichen = parseInt(document.getElementById('bazi-shichen')?.value || '0', 10);
-      if (!month || !day) {
-        alert('请选择生日');
+      const gender = (document.getElementById('bazi-gender')?.value || '').trim();
+      const birthplace = (document.getElementById('bazi-birthplace')?.value || '').trim();
+      if (!year || !month || !day) {
+        alert('请选择出生年月日');
+        return;
+      }
+      if (!gender || !birthplace) {
+        alert('请填写性别和出生地');
         return;
       }
       const today = getTodayStr();
-      const heart = getDivineHeart('bazi');
-      const seed = `${month}-${day}-${shichen}-${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const seed = `${year}-${month}-${day}-${shichen}-${today}-${gender}-${birthplace}`;
       const arr = BAZI_BY_THEME && BAZI_BY_THEME[theme] ? BAZI_BY_THEME[theme] : BAZI_CAREER;
       const idx = hash(seed) % arr.length;
       const career = arr[idx];
@@ -633,14 +640,12 @@
       const pillar = (i) => TIAN_GAN[Math.abs(hash(s + i)) % 10] + DI_ZHI[Math.abs(hash(s + i + 10)) % 12];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
-        ${moodLine}
         <div class="bazi-pillars">
           <div class="bazi-labels">年柱 月柱 日柱 时柱</div>
           <div class="bazi-values">${pillar(0)} ${pillar(1)} ${pillar(2)} ${pillar(3)}</div>
         </div>
-        <div class="bazi-shichen">出生时辰：${SHI_CHEN[shichen]}</div>
+        <div class="bazi-shichen">出生：${year}年${month}月${day}日 ${SHI_CHEN[shichen]} · ${gender} · ${birthplace}</div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
         <div class="sign-advice">💡 ${career.advice}</div>
@@ -655,10 +660,13 @@
 
   /** 紫微查星 */
   const formZiwei = document.getElementById('form-ziwei');
+  const ziweiYear = document.getElementById('ziwei-year');
   const ziweiMonth = document.getElementById('ziwei-month');
   const ziweiDay = document.getElementById('ziwei-day');
   const ziweiResult = document.getElementById('ziwei-result');
-  if (ziweiMonth) ziweiMonth.addEventListener('change', () => updateDayOptionsFor(ziweiMonth, ziweiDay));
+  fillYearOptions(ziweiYear, 1950, new Date().getFullYear());
+  if (ziweiMonth) ziweiMonth.addEventListener('change', () => updateDayOptionsFor(ziweiMonth, ziweiDay, ziweiYear));
+  if (ziweiYear) ziweiYear.addEventListener('change', () => updateDayOptionsFor(ziweiMonth, ziweiDay, ziweiYear));
   if (formZiwei && ziweiResult) {
     formZiwei.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -671,23 +679,28 @@
         restoreResult('ziwei', cached);
         return;
       }
+      const year = parseInt(ziweiYear?.value, 10);
       const month = parseInt(ziweiMonth?.value, 10);
       const day = parseInt(ziweiDay?.value, 10);
-      if (!month || !day) {
-        alert('请选择生日');
+      const shichen = parseInt(document.getElementById('ziwei-shichen')?.value || '0', 10);
+      const gender = (document.getElementById('ziwei-gender')?.value || '').trim();
+      const birthplace = (document.getElementById('ziwei-birthplace')?.value || '').trim();
+      if (!year || !month || !day) {
+        alert('请选择出生年月日');
+        return;
+      }
+      if (!gender || !birthplace) {
+        alert('请填写性别和出生地');
         return;
       }
       const today = getTodayStr();
-      const heart = getDivineHeart('ziwei');
-      const seed = `${month}-${day}-${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const seed = `${year}-${month}-${day}-${shichen}-${today}-${gender}-${birthplace}`;
       const arr = ZIWEI_BY_THEME && ZIWEI_BY_THEME[theme] ? ZIWEI_BY_THEME[theme] : ZIWEI_STARS;
       const idx = hash(seed) % arr.length;
       const star = arr[idx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[star.level] || 'level-ping';
-      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
-        ${moodLine}
         <div class="ziwei-star">${star.name}星</div>
         <div class="sign-level ${cls}">${star.level}</div>
         <div class="sign-text">${star.text}</div>
@@ -726,8 +739,12 @@
         return;
       }
       const today = getTodayStr();
-      const heart = getDivineHeart('xiangxue');
-      const seed = `${month}-${day}-${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const gender = (document.getElementById('xiangxue-gender')?.value || '').trim();
+      if (!gender) {
+        alert('请选择性别');
+        return;
+      }
+      const seed = `${month}-${day}-${today}-${gender}`;
       const parts = XIANGXUE_PARTS_BY_THEME && XIANGXUE_PARTS_BY_THEME[theme] ? XIANGXUE_PARTS_BY_THEME[theme] : XIANGXUE_PARTS;
       const careers = XIANGXUE_CAREER_BY_THEME && XIANGXUE_CAREER_BY_THEME[theme] ? XIANGXUE_CAREER_BY_THEME[theme] : XIANGXUE_CAREER;
       const partIdx1 = hash(seed) % parts.length;
@@ -739,9 +756,7 @@
       const career = careers[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
       const html = `
-        ${moodLine}
         <div class="xiangxue-parts">今日面相重点：<strong>${part1.part}</strong>、<strong>${part2.part}</strong></div>
         <div class="sign-text">${part1.desc} ${part2.desc}</div>
         <div class="sign-level ${cls}">${career.level}</div>
@@ -762,6 +777,11 @@
   if (qimenBtn && qimenResult) {
     qimenBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
+      const question = (document.getElementById('qimen-question')?.value || '').trim();
+      if (!question) {
+        alert('请输入求测问题');
+        return;
+      }
       const nickname = getNickname();
       const theme = getDivineTheme('qimen');
       const cacheKey = getDivineCacheKey('qimen');
@@ -771,8 +791,7 @@
         return;
       }
       const today = getTodayStr();
-      const heart = getDivineHeart('qimen');
-      const seedStr = `${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const seedStr = `${today}-${question}`;
       const seed = hash(seedStr);
       const doorIdx = (seed % QIMEN_DOORS.length + QIMEN_DOORS.length) % QIMEN_DOORS.length;
       const starIdx = ((seed >> 8) % QIMEN_STARS.length + QIMEN_STARS.length) % QIMEN_STARS.length;
@@ -782,9 +801,9 @@
       const career = arr[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
+      const questionLine = question ? `<div class="question-prefix">所问：${question}</div>` : '';
       const html = `
-        ${moodLine}
+        ${questionLine}
         <div class="qimen-info">今日：${QIMEN_DOORS[doorIdx]} · ${QIMEN_STARS[starIdx]} · 吉方位：${QIMEN_DIRECTIONS[dirIdx]}</div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
@@ -804,6 +823,11 @@
   if (liurenBtn && liurenResult) {
     liurenBtn.addEventListener('click', () => {
       if (!requireAuth()) return;
+      const question = (document.getElementById('liuren-question')?.value || '').trim();
+      if (!question) {
+        alert('请输入求测问题');
+        return;
+      }
       const nickname = getNickname();
       const theme = getDivineTheme('liuren');
       const cacheKey = getDivineCacheKey('liuren');
@@ -813,8 +837,7 @@
         return;
       }
       const today = getTodayStr();
-      const heart = getDivineHeart('liuren');
-      const seedStr = `${today}-${heart.thought}-${heart.mood}-${heart.lucky}`;
+      const seedStr = `${today}-${question}`;
       const seed = hash(seedStr);
       const godIdx = (seed % LIUREN_GODS.length + LIUREN_GODS.length) % LIUREN_GODS.length;
       const arr = LIUREN_BY_THEME && LIUREN_BY_THEME[theme] ? LIUREN_BY_THEME[theme] : LIUREN_CAREER;
@@ -822,9 +845,9 @@
       const career = arr[careerIdx];
       const levelClass = { '大吉': 'level-daji', '吉': 'level-ji', '中吉': 'level-zhongji', '小吉': 'level-xiaoji', '平': 'level-ping', '末吉': 'level-moji', '凶': 'level-xiong' };
       const cls = levelClass[career.level] || 'level-ping';
-      const moodLine = heart.mood && getMoodPrefix(heart.mood) ? `<div class="mood-prefix">${getMoodPrefix(heart.mood)}</div>` : '';
+      const questionLine = question ? `<div class="question-prefix">所问：${question}</div>` : '';
       const html = `
-        ${moodLine}
+        ${questionLine}
         <div class="liuren-info">今日发用：<strong>${LIUREN_GODS[godIdx]}</strong></div>
         <div class="sign-level ${cls}">${career.level}</div>
         <div class="sign-text">${career.text}</div>
@@ -868,13 +891,12 @@
     }
 
     const extra = name;
-    const heart = getDivineHeart('draw');
-    const signData = draw(month, day, focus, extra, heart);
+    const signData = draw(month, day, focus, extra);
     const zodiac = getZodiacSign(month, day);
 
     signData.zodiac = zodiac;
     signData.userName = name || '你';
-    const toSave = { zodiac: signData.zodiac, level: signData.level, title: signData.title, text: signData.text, advice: signData.advice, moodPrefix: signData.moodPrefix };
+    const toSave = { zodiac: signData.zodiac, level: signData.level, title: signData.title, text: signData.text, advice: signData.advice };
     if (window.DailyCache) window.DailyCache.set(nickname, cacheKey, toSave);
     showResult(signData);
     updateDrawBtnState();
